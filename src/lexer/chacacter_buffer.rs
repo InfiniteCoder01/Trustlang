@@ -4,14 +4,16 @@ use utf8_chars::BufReadCharsExt;
 
 pub struct CharacterBuffer<R: std::io::Read> {
     source: std::io::BufReader<R>,
+    path: Option<String>,
     peek: Option<char>,
     cursor: Cursor,
 }
 
 impl<R: std::io::Read> CharacterBuffer<R> {
-    pub fn new(source: R) -> Self {
+    pub fn new(source: R, sourcepath: Option<String>) -> Self {
         Self {
             source: BufReader::new(source),
+            path: sourcepath,
             peek: None,
             cursor: Cursor::default(),
         }
@@ -19,6 +21,10 @@ impl<R: std::io::Read> CharacterBuffer<R> {
 
     pub fn cursor(&self) -> &Cursor {
         &self.cursor
+    }
+
+    pub fn path(&self) -> &Option<String> {
+        &self.path
     }
 
     // * Chars
@@ -49,11 +55,7 @@ impl<R: std::io::Read> CharacterBuffer<R> {
         Ok(None)
     }
 
-    pub fn next_token(
-        &mut self,
-        pred: impl Fn(char) -> bool,
-        prefix: String,
-    ) -> Result<String> {
+    pub fn next_token(&mut self, pred: impl Fn(char) -> bool, prefix: String) -> Result<String> {
         let mut buffer = prefix;
         while let Some(char) = self.next_char_if(&pred)? {
             buffer.push(char);
@@ -65,7 +67,15 @@ impl<R: std::io::Read> CharacterBuffer<R> {
 impl<R: std::io::Read> CharacterBuffer<R> {
     fn fill_char(&mut self) -> Result<()> {
         if self.peek.is_none() {
-            self.peek = self.source.read_char().map_err(super::LexerError::from)?;
+            self.peek = self
+                .source
+                .read_char()
+                .map_err(super::LexerError::from)
+                .map_err(super::SpannedError::from)
+                .map_err(|mut err| {
+                    err.sourcepath = self.path.clone();
+                    err
+                })?;
         }
         Ok(())
     }

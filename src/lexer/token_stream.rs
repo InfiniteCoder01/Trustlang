@@ -3,15 +3,13 @@ use super::*;
 
 pub struct TokenStream<R: std::io::Read> {
     source: CharacterBuffer<R>,
-    sourcepath: Option<String>,
     token_start: Option<Cursor>,
 }
 
 impl<R: std::io::Read> TokenStream<R> {
     pub fn new(source: R, sourcepath: Option<&str>) -> Self {
         Self {
-            source: CharacterBuffer::new(source),
-            sourcepath: sourcepath.map(str::to_owned),
+            source: CharacterBuffer::new(source, sourcepath.map(str::to_owned)),
             token_start: None,
         }
     }
@@ -38,13 +36,13 @@ impl<R: std::io::Read> TokenStream<R> {
             } else if char == '\'' {
                 let char = self.read_string(char)?;
                 if char.len() != 1 {
-                    return self.span(LexerError::InvalidCharLiteralLength(char.len()));
+                    return self.span_e(LexerError::InvalidCharLiteralLength(char.len()));
                 }
                 Token::Literal(Literal::Char(char.chars().next().unwrap()))
             } else if char == '\"' {
                 Token::Literal(Literal::String(self.read_string(char)?))
             } else {
-                return self.span(LexerError::DetermineToken(char));
+                return self.span_e(LexerError::DetermineToken(char));
             };
 
             Ok(Some(SpannedToken {
@@ -67,7 +65,7 @@ impl<R: std::io::Read> TokenStream<R> {
                 // TODO: escape codes, ref: https://github.com/MaxXSoft/laps/blob/3e193c16c2baf9baa65ea9b7c5d81f8d891bd858/src/lexer.rs#L229
                 buffer.push(char);
             } else {
-                return self.span(LexerError::UnterminatedStringLiteral);
+                return self.span_e(LexerError::UnterminatedStringLiteral);
             }
         }
         Ok(buffer)
@@ -83,9 +81,21 @@ impl<R: std::io::Read> TokenStream<R> {
 
 // * ------------------------------------ Errors ------------------------------------ * //
 impl<R: std::io::Read> TokenStream<R> {
-    pub fn span<T>(&mut self, error: impl Into<SpannedLexerError>) -> Result<T> {
-        let mut error = error.into();
-        error.at = self.token_start.take();
-        Err(error)
+    pub fn span<T, E>(
+        &mut self,
+        result: impl Into<std::result::Result<T, SpannedError<E>>>,
+    ) -> std::result::Result<T, SpannedError<E>> {
+        result.into().map_err(|mut error| {
+            error.at = self.token_start.take();
+            error.sourcepath = self.source.path().clone();
+            error
+        })
+    }
+
+    pub fn span_e<T, E>(
+        &mut self,
+        error: impl Into<SpannedError<E>>,
+    ) -> std::result::Result<T, SpannedError<E>> {
+        self.span(Err(error.into()))
     }
 }

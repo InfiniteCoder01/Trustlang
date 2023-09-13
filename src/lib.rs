@@ -21,9 +21,17 @@ pub struct SpannedError<T> {
     pub at: Option<Cursor>,
 }
 
+impl<T> From<T> for SpannedError<T> {
+    fn from(value: T) -> Self {
+        Self {
+            error: value,
+            sourcepath: None,
+            at: None,
+        }
+    }
+}
 
-impl<T: std
-::fmt::Display> std::fmt::Display for SpannedError<T> {
+impl<T: std::fmt::Display> std::fmt::Display for SpannedError<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(at) = &self.at {
             write!(f, "Error at {}:{}: {}", at.line, at.column, self.error)?;
