@@ -1,0 +1,17 @@
+[package]
+name = "trustlang"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+xid = ["dep:unicode-ident"]
+
+[dependencies]
+# asmgen = { path = "../../Libraries/asmgen" }
+
+clap = { version = "4.4.0", features = ["derive"] }
+thiserror = "1.0.48"
+
+lazy-regex = { version = "3.0.1", features = ["std"] }
+unicode-ident = { version = "1.0.11", optional = true }
+utf8-chars = "3.0.1"

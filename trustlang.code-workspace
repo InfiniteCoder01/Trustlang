@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "trustlang",
+			"path": "."
+		},
+		{
+			"name": "asmgen",
+			"path": "../../Libraries/asmgen"
+		}
+	],
+	"settings": {}
+}
