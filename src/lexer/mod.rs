@@ -3,9 +3,11 @@ use thiserror::Error;
 
 pub use chacacter_buffer::Cursor;
 pub use token_stream::TokenStream;
+pub use token_buffer::TokenBuffer;
 
 pub mod chacacter_buffer;
 pub mod token_stream;
+pub mod token_buffer;
 
 #[derive(Clone, Debug)]
 pub enum Token {

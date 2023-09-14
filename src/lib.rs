@@ -1,6 +1,6 @@
 pub use lexer::Cursor;
 pub use lexer::TokenStream;
-pub use parser::Program;
+pub use parser::Module;
 pub mod lexer;
 pub mod parser;
 

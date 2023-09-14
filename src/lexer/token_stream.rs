@@ -88,13 +88,6 @@ impl<R: std::io::Read> TokenStream<R> {
     }
 }
 
-// * ------------------------------------- Parse ------------------------------------ * //
-impl<R: std::io::Read> TokenStream<R> {
-    pub fn parse<T: crate::parser::Parse>(&mut self) -> crate::parser::Result<T> {
-        T::parse(self)
-    }
-}
-
 // * ------------------------------------ Errors ------------------------------------ * //
 impl<R: std::io::Read> TokenStream<R> {
     pub fn span<T, E>(
