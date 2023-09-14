@@ -1,0 +1,28 @@
+-- todo
+-- title: Lexer
+
+[] Floating point literals
+
+-- todo
+-- title: AST Structures
+
+[] Functions
+[] Structs
+[] Impls
+[] Enums
+[] Traits
+[] Constants
+[] Statics
+[] Modules
+[] Imports
+[] TypeAliases
+[] Unions? For C compatibility?
+[] Externs (Hopefully something like include_c!("raylib.h"))
+
+-- todo
+-- title: Some more stuff
+
+[] Projects
+[] Attributes
+[] Directives
+[] Macros

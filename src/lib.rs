@@ -1,19 +1,23 @@
-pub use lexer::Cursor;
-pub use lexer::TokenStream;
-pub use parser::Module;
 pub mod lexer;
 pub mod parser;
 
-pub fn parse<T: std::io::Read>(source: T, sourcepath: Option<&str>) -> Vec<lexer::SpannedToken> {
-    let mut tokens = Vec::new();
-    let mut lexer = TokenStream::new(source, sourcepath);
-    while let Some(token) = lexer.next_token().map_err(|err| panic!("{}", err)).unwrap() {
-        tokens.push(token);
+pub fn parse<T: std::io::Read>(source: T, sourcepath: Option<&str>) -> Vec<parser::Expression> {
+    use lexer::{TokenBuffer, TokenStream};
+    let mut tokens = TokenBuffer::new(TokenStream::new(source, sourcepath));
+    let mut expressions = Vec::new();
+    while let Some(expression) = parser::Expression::parse(&mut tokens)
+        .map_err(|err| panic!("{}", err))
+        .unwrap()
+    {
+        expressions.push(expression);
     }
-    tokens
+    expressions
 }
 
+// * ------------------------------------ Errors ------------------------------------ * //
+use lexer::Cursor;
 use thiserror::Error;
+
 #[derive(Error, Debug)]
 pub struct SpannedError<T> {
     pub error: T,

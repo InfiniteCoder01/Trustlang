@@ -28,6 +28,12 @@ pub enum Literal {
     Int(u32),
 }
 
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
 // * ---------------------------------- Check chars --------------------------------- * //
 mod chars {
     use lazy_regex::regex;
@@ -59,14 +65,7 @@ mod chars {
     }
 }
 
-// * ------------------------------------- Span ------------------------------------- * //
-#[derive(Clone, Debug)]
-pub struct SpannedToken {
-    pub token: Token,
-    pub start: Cursor,
-    pub end: Cursor,
-}
-
+// * ------------------------------------ Errors ------------------------------------ * //
 pub type Result<T> = std::result::Result<T, SpannedError<LexerError>>;
 
 #[derive(Error, Debug)]

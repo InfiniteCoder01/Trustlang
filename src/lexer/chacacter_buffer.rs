@@ -1,21 +1,21 @@
 use super::Result;
-use std::io::BufReader;
+use std::io::{BufReader, Read};
 use utf8_chars::BufReadCharsExt;
 
-pub struct CharacterBuffer<R: std::io::Read> {
+pub struct CharacterBuffer<R: Read> {
     source: std::io::BufReader<R>,
     path: Option<String>,
     peek: Option<char>,
     cursor: Cursor,
 }
 
-impl<R: std::io::Read> CharacterBuffer<R> {
+impl<R: Read> CharacterBuffer<R> {
     pub fn new(source: R, sourcepath: Option<String>) -> Self {
         Self {
             source: BufReader::new(source),
             path: sourcepath,
             peek: None,
-            cursor: Cursor::default(),
+            cursor: Cursor::new(1, 1),
         }
     }
 
@@ -38,7 +38,7 @@ impl<R: std::io::Read> CharacterBuffer<R> {
         if let Some(char) = self.peek {
             if char == '\n' {
                 self.cursor.line += 1;
-                self.cursor.column = 0;
+                self.cursor.column = 1;
             } else {
                 self.cursor.column += 1;
             }
@@ -64,7 +64,7 @@ impl<R: std::io::Read> CharacterBuffer<R> {
     }
 }
 
-impl<R: std::io::Read> CharacterBuffer<R> {
+impl<R: Read> CharacterBuffer<R> {
     fn fill_char(&mut self) -> Result<()> {
         if self.peek.is_none() {
             self.peek = self
@@ -81,8 +81,14 @@ impl<R: std::io::Read> CharacterBuffer<R> {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Cursor {
     pub line: usize,
     pub column: usize,
+}
+
+impl Cursor {
+    pub fn new(line: usize, column: usize) -> Self {
+        Self { line, column }
+    }
 }

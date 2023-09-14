@@ -1,14 +1,15 @@
 use super::Result;
-use super::SpannedToken;
+use super::Token;
+use super::TokenStream;
 use crate::SpannedError;
-use crate::TokenStream;
+use std::io::Read;
 
-pub struct TokenBuffer<R: std::io::Read> {
-    peek: Option<SpannedToken>,
+pub struct TokenBuffer<R: Read> {
+    peek: Option<Token>,
     token_stream: TokenStream<R>,
 }
 
-impl<R: std::io::Read> TokenBuffer<R> {
+impl<R: Read> TokenBuffer<R> {
     pub fn new(token_stream: TokenStream<R>) -> Self {
         Self {
             peek: None,
@@ -16,12 +17,12 @@ impl<R: std::io::Read> TokenBuffer<R> {
         }
     }
 
-    pub fn next_token(&mut self) -> Result<Option<SpannedToken>> {
+    pub fn next_token(&mut self) -> Result<Option<Token>> {
         self.fill_token()?;
         Ok(self.peek.take())
     }
 
-    pub fn peek_token(&mut self) -> Result<Option<SpannedToken>> {
+    pub fn peek_token(&mut self) -> Result<Option<Token>> {
         self.fill_token()?;
         Ok(self.peek.clone())
     }
@@ -35,18 +36,11 @@ impl<R: std::io::Read> TokenBuffer<R> {
 }
 
 // * ------------------------------------ Errors ------------------------------------ * //
-impl<R: std::io::Read> TokenBuffer<R> {
+impl<R: Read> TokenBuffer<R> {
     pub fn span<T, E>(
-        &mut self,
-        result: impl Into<std::result::Result<T, SpannedError<E>>>,
-    ) -> std::result::Result<T, SpannedError<E>> {
-        self.token_stream.span(result)
-    }
-
-    pub fn span_e<T, E>(
         &mut self,
         error: impl Into<SpannedError<E>>,
     ) -> std::result::Result<T, SpannedError<E>> {
-        self.token_stream.span_e(error)
+        self.token_stream.span(error)
     }
 }
