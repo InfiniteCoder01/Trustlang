@@ -1,4 +1,5 @@
-use crate::{lexer::TokenBuffer, SpannedError};
+use crate::lexer::{Keyword, Token, TokenBuffer};
+use crate::SpannedError;
 use thiserror::Error;
 
 // * --------------------------------- Declarations --------------------------------- * //
@@ -7,8 +8,17 @@ pub enum Declaration {
     Function(),
 }
 
-pub fn parse_declaration<R: std::io::Read>(tokens: &mut TokenBuffer<R>) -> Result<Declaration> {
-    Ok(Declaration::Function())
+pub fn parse_declaration<R: std::io::Read>(
+    tokens: &mut TokenBuffer<R>,
+) -> Result<Option<Declaration>> {
+    if let Some(token) = tokens.peek_token()? {
+        Ok(Some(match token.token {
+            Token::Ident(_, Some(Keyword::Fn)) => Declaration::Function(),
+            _ => return Ok(None),
+        }))
+    } else {
+        Ok(None)
+    }
 }
 
 // * ------------------------------------ Program ----------------------------------- * //
@@ -18,9 +28,9 @@ pub struct Module {
 }
 
 fn parse_module<R: std::io::Read>(tokens: &mut TokenBuffer<R>) -> Result<Module> {
-    let r#fn = String::from("fn");
     let mut symbols = Vec::new();
-    while tokens.peek_token()?.is_some() {
+    while let Some(declaration) = parse_declaration(tokens)? {
+        symbols.push(declaration);
     }
     Ok(Module { symbols })
 }
@@ -43,10 +53,4 @@ impl From<SpannedError<crate::lexer::LexerError>> for SpannedError<ParserError> 
 pub enum ParserError {
     #[error("tokenization failed")]
     Lexer(#[from] crate::lexer::LexerError),
-    #[error("unterminated string/character literal")]
-    UnterminatedStringLiteral,
-    #[error("expected char literal to contain 1 char, but it contains {0} chars")]
-    InvalidCharLiteralLength(usize),
-    #[error("failed to parse token that starts with {0:?}")]
-    DetermineToken(char),
 }

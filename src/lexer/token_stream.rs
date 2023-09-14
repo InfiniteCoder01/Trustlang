@@ -31,7 +31,8 @@ impl<R: std::io::Read> TokenStream<R> {
                 match ident.as_str() {
                     "true" => Token::Literal(Literal::Bool(true)),
                     "false" => Token::Literal(Literal::Bool(false)),
-                    _ => Token::Ident(ident),
+                    "fn" => Token::Ident(ident, Some(Keyword::Fn)),
+                    _ => Token::Ident(ident, None),
                 }
             } else if char.is_ascii_digit() {
                 Token::Literal(Literal::Int(match self.source.peek_char()? {
