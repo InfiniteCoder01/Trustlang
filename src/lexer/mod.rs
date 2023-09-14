@@ -18,6 +18,7 @@ pub enum Literal {
     Char(char),
     String(String),
     Bool(bool),
+    Int(u32),
 }
 
 // * ---------------------------------- Check chars --------------------------------- * //

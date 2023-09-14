@@ -33,14 +33,30 @@ impl<R: std::io::Read> TokenStream<R> {
                     "false" => Token::Literal(Literal::Bool(false)),
                     _ => Token::Ident(ident),
                 }
+            } else if char.is_ascii_digit() {
+                Token::Literal(Literal::Int(match self.source.peek_char()? {
+                    Some('x') if char == '0' => todo!("HEX literals"),
+                    Some('b') if char == '0' => todo!("BIN literals"),
+                    Some('0'..='9') => self
+                        .source
+                        .next_token(|char| char.is_ascii_digit(), char.to_string())?
+                        .parse()
+                        .expect("Internal error: Failed to parse a number!"),
+                    _ => char
+                        .to_digit(10)
+                        .expect("Internal error: Failed to parse a number!"),
+                }))
+                // TODO: Number suffixes
             } else if char == '\'' {
                 let char = self.read_string(char)?;
                 if char.len() != 1 {
                     return self.span_e(LexerError::InvalidCharLiteralLength(char.len()));
                 }
                 Token::Literal(Literal::Char(char.chars().next().unwrap()))
+                // TODO: Char suffixes
             } else if char == '\"' {
                 Token::Literal(Literal::String(self.read_string(char)?))
+                // TODO: String suffixes
             } else {
                 return self.span_e(LexerError::DetermineToken(char));
             };
