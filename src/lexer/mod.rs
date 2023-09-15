@@ -32,8 +32,22 @@ pub enum Literal {
 }
 
 impl std::fmt::Display for Token {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Token::Ident(ident, _) => write!(f, "Identifier '{}'", ident),
+            Token::Literal(literal) => write!(f, "Literal {}", literal),
+        }
+    }
+}
+
+impl std::fmt::Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Literal::Char(characterer) => write!(f, "{:?}", characterer),
+            Literal::String(string) => write!(f, "{:?}", string),
+            Literal::Bool(boolean) => write!(f, "{}", boolean),
+            Literal::Int(integer) => write!(f, "{}", integer),
+        }
     }
 }
 

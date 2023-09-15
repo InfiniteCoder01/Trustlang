@@ -13,8 +13,11 @@ fn main() {
     let cli = Cli::parse();
     if let Some(file) = cli.file {
         match std::fs::File::open(&file) {
-            Ok(source) => println!("{:?}", trustlang::parse(source, Some(&file))),
-            Err(err) => panic!("Failed to open file {:?}: {}", file, err), // TODO: Better errors
+            Ok(source) => match trustlang::parse(source, Some(&file)) {
+                Ok(result) => println!("{:?}", result),
+                Err(error) => eprintln!("{}", error),
+            },
+            Err(err) => eprintln!("Failed to open file {:?}: {}", file, err),
         }
     } else {
         loop {
@@ -26,7 +29,10 @@ fn main() {
                 .next()
                 .and_then(|line| line.ok())
             {
-                println!("{:?}", trustlang::parse(std::io::Cursor::new(line), None));
+                match trustlang::parse(std::io::Cursor::new(line), None) {
+                    Ok(result) => println!("{:?}", result),
+                    Err(error) => eprintln!("{}", error),
+                }
             } else {
                 break;
             }

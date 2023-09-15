@@ -1,17 +1,17 @@
 pub mod lexer;
 pub mod parser;
 
-pub fn parse<T: std::io::Read>(source: T, sourcepath: Option<&str>) -> Vec<parser::Expression> {
+pub fn parse<T: std::io::Read>(
+    source: T,
+    sourcepath: Option<&str>,
+) -> Result<Vec<parser::Expression>, SpannedError<parser::ParsingError>> {
     use lexer::{TokenBuffer, TokenStream};
     let mut tokens = TokenBuffer::new(TokenStream::new(source, sourcepath));
     let mut expressions = Vec::new();
-    while let Some(expression) = parser::Expression::parse(&mut tokens)
-        .map_err(|err| panic!("{}", err))
-        .unwrap()
-    {
+    while let Some(expression) = parser::Expression::parse(&mut tokens)? {
         expressions.push(expression);
     }
-    expressions
+    Ok(expressions)
 }
 
 // * ------------------------------------ Errors ------------------------------------ * //
