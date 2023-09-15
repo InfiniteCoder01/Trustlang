@@ -15,7 +15,7 @@
 [] OperatorExpression::ArithmeticOrLogicalExpression
 [] OperatorExpression::ComparisonExpression
 [] OperatorExpression::LazyBooleanExpression
-[] OperatorExpression::TypeCastExpression
+[x] OperatorExpression::TypeCastExpression
 [] OperatorExpression::AssignmentExpression
 [] OperatorExpression::CompoundAssignmentExpression
 [] OperatorExpression

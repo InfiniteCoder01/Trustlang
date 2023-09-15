@@ -15,7 +15,7 @@ pub enum Token {
     Literal(Literal),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Keyword {
     As,
     Fn,
