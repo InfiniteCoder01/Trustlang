@@ -9,18 +9,21 @@ pub mod chacacter_buffer;
 pub mod token_buffer;
 pub mod token_stream;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
     Ident(String, Option<Keyword>),
     Literal(Literal),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Keyword {
+    As,
     Fn,
+
+    Bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Literal {
     Char(char),
     String(String),
@@ -29,7 +32,7 @@ pub enum Literal {
 }
 
 impl std::fmt::Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 }

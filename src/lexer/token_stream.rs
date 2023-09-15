@@ -31,7 +31,11 @@ impl<R: Read> TokenStream<R> {
                 match ident.as_str() {
                     "true" => Token::Literal(Literal::Bool(true)),
                     "false" => Token::Literal(Literal::Bool(false)),
+
+                    "as" => Token::Ident(ident, Some(Keyword::As)),
                     "fn" => Token::Ident(ident, Some(Keyword::Fn)),
+
+                    "bool" => Token::Ident(ident, Some(Keyword::Bool)),
                     _ => Token::Ident(ident, None),
                 }
             } else if char.is_ascii_digit() {

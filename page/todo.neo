@@ -1,8 +1,27 @@
 -- todo
+-- title: Project things
+
+[] Partially move lexer out to a separate "Compiler frontend" crate
+
+-- todo
 -- title: Current: Expressions
 
 [x] LiteralExpression
+
+[] OperatorExpression::NegationExpression
+[] OperatorExpression::BorrowExpression
+[] OperatorExpression::DereferenceExpression
+[] OperatorExpression::ErrorPropagationExpression
+[] OperatorExpression::ArithmeticOrLogicalExpression
+[] OperatorExpression::ComparisonExpression
+[] OperatorExpression::LazyBooleanExpression
+[] OperatorExpression::TypeCastExpression
+[] OperatorExpression::AssignmentExpression
+[] OperatorExpression::CompoundAssignmentExpression
 [] OperatorExpression
+
+[] Types
+
 [] GroupedExpression
 [] ArrayExpression
 [] IndexExpression

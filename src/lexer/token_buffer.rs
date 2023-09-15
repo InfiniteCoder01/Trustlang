@@ -27,6 +27,27 @@ impl<R: Read> TokenBuffer<R> {
         Ok(self.peek.clone())
     }
 
+    pub fn next_token_if(&mut self, pred: impl FnOnce(&Token) -> bool) -> Result<Option<Token>> {
+        self.fill_token()?;
+        if self.peek.as_ref().is_some_and(pred) {
+            Ok(self.peek.take())
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn match_keyword(&mut self, expectation: super::Keyword) -> Result<bool> {
+        self.fill_token()?;
+        self.next_token_if(|token| {
+            if let Token::Ident(_, Some(keyword)) = token {
+                keyword == &expectation
+            } else {
+                false
+            }
+        })
+        .map(|token| token.is_some())
+    }
+
     fn fill_token(&mut self) -> Result<()> {
         if self.peek.is_none() {
             self.peek = self.token_stream.next_token()?;

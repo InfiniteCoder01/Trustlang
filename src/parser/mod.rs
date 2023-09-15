@@ -3,6 +3,7 @@ pub use expression::Expression;
 use thiserror::Error;
 
 pub mod expression;
+pub mod types;
 
 pub type Result<T> = std::result::Result<T, SpannedError<ParsingError>>; // TODO: Span wrappr
 
@@ -22,4 +23,8 @@ pub enum ParsingError {
     Lexer(#[from] crate::lexer::LexerError),
     #[error("expected expression, got {0}")]
     ExpectedExpression(crate::lexer::Token),
+    #[error("expected type, got {0}")]
+    ExpectedType(crate::lexer::Token),
+    #[error("expected type")]
+    ExpectedTypeGotEof,
 }

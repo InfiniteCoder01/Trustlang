@@ -1,0 +1,135 @@
+:root {
+  --fg: #e2ded1;
+  --title-fg: #67afee;
+  --subtitle-fg: #a4c3dd;
+
+  --bg: #202124;
+  --bookmark-bg: #333;
+  --note-bg: #829;
+  --warning-bg: #bbbb00;
+  --code-bg: #383930;
+
+  --border: #fff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  margin-top: 1em;
+}
+
+body {
+  width: min(100% - 3rem, 70ch);
+  padding: 0;
+  margin: auto;
+
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: 'Helvetica', sans-serif;
+  overflow-wrap: break-word;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+br {
+  display: block;
+  content: "";
+  margin-top: 1.2rem;
+}
+
+/* -------------------------------------- Titles -------------------------------------- */
+.title {
+  font-size: 2.5rem;
+  color: var(--title-fg);
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: var(--subtitle-fg);
+}
+
+.bookmarkTitle {
+  font-size: 1.2rem;
+  line-height: 1.1;
+  color: var(--title-fg);
+}
+
+.imageTitle {
+  font-size: 1.2rem;
+  line-height: 1.1;
+  margin-top: 2rem;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+h3,
+h4 {
+  margin-top: 0;
+}
+
+/* --------------------------------------- Text --------------------------------------- */
+p {
+  font-size: 1rem;
+  line-height: 1.6;
+  /* margin: auto; */
+}
+
+a {
+  color: #f9a1bc;
+  text-decoration: none;
+}
+
+/* -------------------------------------- Blocks -------------------------------------- */
+code {
+  margin-top: 0;
+  background-color: var(--code-bg);
+  border-radius: 0.5rem;
+  padding: 1.4rem;
+}
+
+.hljs {
+  background: var(--code-bg);
+}
+
+.bookmark {
+  background-color: var(--bookmark-bg);
+  max-width: 70%;
+  border: 2px solid #fff;
+  border-radius: 0.6rem;
+  padding: 1rem;
+  margin-top: 2rem;
+}
+
+.note {
+  background-color: var(--note-bg);
+  border-radius: 0.6rem;
+  padding: 1.4rem;
+  margin-top: 2rem;
+}
+
+.warning {
+  background-color: var(--warning-bg);
+  border-radius: 0.6rem;
+  padding: 1.4rem;
+  margin-top: 2rem;
+}
+
+/* ------------------------------------ Other tags ------------------------------------ */
+ul,
+ol {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+li {
+  margin: 0;
+  padding: 0px;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
