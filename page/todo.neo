@@ -1,4 +1,37 @@
 -- todo
+-- title: Current: Expressions
+
+[x] LiteralExpression
+[] OperatorExpression
+[] GroupedExpression
+[] ArrayExpression
+[] IndexExpression
+[] TupleExpression
+[] TupleIndexingExpression
+[] PathExpression - Variable
+[] UnderscoreExpression
+[] CallExpression
+[] StructExpression
+[] RangeExpression
+[] FieldExpression
+[] MethodCallExpression
+[] ClosureExpression
+[] AwaitExpression
+[] AsyncBlockExpression
+
+[] PathExpression
+[] ReturnExpression
+[] BreakExpression
+[] ContinueExpression
+
+[] BlockExpression
+[] UnsafeBlockExpression
+[] LoopExpression
+[] IfExpression
+[] IfLetExpression
+[] MatchExpression
+
+-- todo
 -- title: Lexer
 
 [] Floating point literals
@@ -23,6 +56,9 @@
 -- title: Some more stuff
 
 [] Projects
+[] Effect system
+[] Async/await
 [] Attributes
+[] Doc comments
 [] Directives
 [] Macros
