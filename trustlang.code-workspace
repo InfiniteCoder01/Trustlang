@@ -5,6 +5,10 @@
 			"path": "."
 		},
 		{
+			"name": "orecc-front",
+			"path": "../../Libraries/orecc-front"
+		},
+		{
 			"name": "asmgen",
 			"path": "../../Libraries/asmgen"
 		}

@@ -1,19 +1,22 @@
-use super::chacacter_buffer::CharacterBuffer;
 use super::*;
+use orecc_front::chacacter_buffer::CharacterBuffer;
+use orecc_front::chars;
 use std::io::Read;
 
 pub struct TokenStream<R: Read> {
     source: CharacterBuffer<R>,
     token_start: Option<Cursor>,
     errors: Vec<CompilationError>,
+    sourcepath: Option<String>,
 }
 
 impl<R: Read> TokenStream<R> {
     pub fn new(source: R, sourcepath: Option<&str>) -> Self {
         Self {
-            source: CharacterBuffer::new(source, sourcepath.map(str::to_owned)),
+            source: CharacterBuffer::new(source),
             token_start: None,
             errors: Vec::new(),
+            sourcepath: sourcepath.map(str::to_owned),
         }
     }
 
@@ -111,7 +114,7 @@ impl<R: Read> TokenStream<R> {
     pub fn error(&mut self, message: impl Into<String>) {
         self.errors.push(CompilationError {
             message: message.into(),
-            sourcepath: self.source.path().clone(),
+            sourcepath: self.sourcepath.clone(),
             at: self.token_start.clone(),
         });
     }

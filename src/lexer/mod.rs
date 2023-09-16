@@ -1,10 +1,9 @@
 use crate::CompilationError;
 
-pub use chacacter_buffer::Cursor;
+pub use orecc_front::chacacter_buffer::Cursor;
 pub use token_buffer::TokenBuffer;
 pub use token_stream::TokenStream;
 
-pub mod chacacter_buffer;
 pub mod token_buffer;
 pub mod token_stream;
 
@@ -47,37 +46,6 @@ impl std::fmt::Display for Literal {
             Literal::Bool(boolean) => write!(f, "{}", boolean),
             Literal::Int(integer) => write!(f, "{}", integer),
         }
-    }
-}
-
-// * ---------------------------------- Check chars --------------------------------- * //
-mod chars {
-    use lazy_regex::regex;
-
-    #[cfg(feature = "xid")]
-    pub(super) fn is_ident_start(char: char) -> bool {
-        unicode_ident::is_xid_start(char) || char == '_'
-    }
-
-    #[cfg(feature = "xid")]
-    pub(super) fn is_ident_continue(char: char) -> bool {
-        unicode_ident::is_xid_continue(char)
-    }
-
-    #[cfg(not(feature = "xid"))]
-    pub(super) fn is_ident_start(char: char) -> bool {
-        let regex = regex!("[a-zA-Z_]");
-        regex.is_match(&char.to_string())
-    }
-
-    #[cfg(not(feature = "xid"))]
-    pub(super) fn is_ident_continue(char: char) -> bool {
-        let regex = regex!("[a-zA-Z0-9_]");
-        regex.is_match(&char.to_string())
-    }
-
-    pub(super) fn is_whitespace(char: char) -> bool {
-        char.is_whitespace()
     }
 }
 

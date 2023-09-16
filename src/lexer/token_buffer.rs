@@ -21,9 +21,9 @@ impl<R: Read> TokenBuffer<R> {
         self.peek.take()
     }
 
-    pub fn peek_token(&mut self) -> Option<Token> {
+    pub fn peek_token(&mut self) -> Option<&Token> {
         self.fill_token();
-        self.peek.clone()
+        self.peek.as_ref()
     }
 
     pub fn next_token_if(&mut self, pred: impl FnOnce(&Token) -> bool) -> Option<Token> {

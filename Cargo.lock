@@ -154,6 +154,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
 
 [[package]]
+name = "orecc-front"
+version = "0.1.0"
+source = "git+https://github.com/InfiniteCoder01/orecc-front.git#b2cbb801a2d6732a2c381bff6c5acf6268047f10"
+dependencies = [
+ "lazy-regex",
+ "unicode-ident",
+ "utf8-chars",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -222,9 +232,7 @@ name = "trustlang"
 version = "0.1.0"
 dependencies = [
  "clap",
- "lazy-regex",
- "unicode-ident",
- "utf8-chars",
+ "orecc-front",
 ]
 
 [[package]]
