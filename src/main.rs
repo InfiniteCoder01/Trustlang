@@ -9,14 +9,21 @@ struct Cli {
     file: Option<String>,
 }
 
+pub fn compile<T: std::io::Read>(source: T, sourcepath: Option<&str>) {
+    let (result, errors) = trustlang::parse(source, sourcepath);
+    if errors.is_empty() {
+        println!("Compiled successfully!\nResult: {result:?}");
+    } else {
+        eprintln!("Compiled with errors: errors{errors:?}!");
+        println!("Result: {result:?}");
+    }
+}
+
 fn main() {
     let cli = Cli::parse();
     if let Some(file) = cli.file {
         match std::fs::File::open(&file) {
-            Ok(source) => match trustlang::parse(source, Some(&file)) {
-                Ok(result) => println!("{:?}", result),
-                Err(error) => eprintln!("{}", error),
-            },
+            Ok(source) => compile(source, Some(&file)),
             Err(err) => eprintln!("Failed to open file {:?}: {}", file, err),
         }
     } else {
@@ -29,10 +36,7 @@ fn main() {
                 .next()
                 .and_then(|line| line.ok())
             {
-                match trustlang::parse(std::io::Cursor::new(line), None) {
-                    Ok(result) => println!("{:?}", result),
-                    Err(error) => eprintln!("{}", error),
-                }
+                compile(std::io::Cursor::new(line), None);
             } else {
                 break;
             }

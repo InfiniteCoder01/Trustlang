@@ -5,6 +5,7 @@ use std::io::Read;
 pub struct TokenStream<R: Read> {
     source: CharacterBuffer<R>,
     token_start: Option<Cursor>,
+    errors: Vec<CompilationError>,
 }
 
 impl<R: Read> TokenStream<R> {
@@ -12,23 +13,24 @@ impl<R: Read> TokenStream<R> {
         Self {
             source: CharacterBuffer::new(source, sourcepath.map(str::to_owned)),
             token_start: None,
+            errors: Vec::new(),
         }
     }
 
-    pub fn next_token(&mut self) -> Result<Option<Token>> {
+    pub fn next_token(&mut self) -> Option<Token> {
         // * Skip spaces
-        while self.source.next_char_if(chars::is_whitespace)?.is_some() {}
+        while self.source.next_char_if(chars::is_whitespace).is_some() {}
 
-        // * Parse a token
-        self.token_start = Some(self.source.cursor().clone());
-        if let Some(char) = self.source.next_char()? {
+        loop {
+            // * Parse a token
+            self.token_start = Some(self.source.cursor().clone());
+            let char = self.source.next_char()?;
+
             // * Tokens
             // TODO: Raw strings
-            let token = if chars::is_ident_start(char) {
-                let ident = self
-                    .source
-                    .next_token(chars::is_ident_continue, char.to_string())?;
-                match ident.as_str() {
+            if chars::is_ident_start(char) {
+                let ident = self.source.next_token(chars::is_ident_continue, char);
+                return Some(match ident.as_str() {
                     "true" => Token::Literal(Literal::Bool(true)),
                     "false" => Token::Literal(Literal::Bool(false)),
 
@@ -37,67 +39,88 @@ impl<R: Read> TokenStream<R> {
 
                     "bool" => Token::Ident(ident, Some(Keyword::Bool)),
                     _ => Token::Ident(ident, None),
-                }
+                });
             } else if char.is_ascii_digit() {
-                Token::Literal(Literal::Int(match self.source.peek_char()? {
-                    Some('x') if char == '0' => todo!("HEX literals"),
-                    Some('b') if char == '0' => todo!("BIN literals"),
-                    Some('0'..='9') => self
-                        .source
-                        .next_token(|char| char.is_ascii_digit(), char.to_string())?
-                        .parse()
-                        .expect("Internal error: Failed to parse a number!"),
-                    _ => char
-                        .to_digit(10)
-                        .expect("Internal error: Failed to parse a number!"),
-                }))
+                return Some(Token::Literal(Literal::Int(
+                    match self.source.peek_char() {
+                        Some('x') if char == '0' => todo!("HEX literals"),
+                        Some('b') if char == '0' => todo!("BIN literals"),
+                        Some('0'..='9') => self
+                            .source
+                            .next_token(|char| char.is_ascii_digit(), char)
+                            .parse()
+                            .expect("Internal error: Failed to parse a number!"),
+                        _ => char
+                            .to_digit(10)
+                            .expect("Internal error: Failed to parse a number!"),
+                    },
+                )));
                 // TODO: Number suffixes
             } else if char == '\'' {
-                let char = self.read_string(char)?;
-                if char.len() != 1 {
-                    return self.span(LexerError::InvalidCharLiteralLength(char.len()));
-                }
-                Token::Literal(Literal::Char(char.chars().next().unwrap()))
-                // TODO: Char suffixes
+                return Some(self.parse_char_or_lifetime());
             } else if char == '\"' {
-                Token::Literal(Literal::String(self.read_string(char)?))
-                // TODO: String suffixes
+                return Some(Token::Literal(self.parse_string()));
             } else {
-                return self.span(LexerError::DetermineToken(char));
-            };
-
-            Ok(Some(token))
-        } else {
-            Ok(None)
+                self.error(format!("failed to parse token that starts with {char:?}"));
+            }
         }
     }
 
-    fn read_string(&mut self, quote: char) -> Result<String> {
+    fn parse_char_or_lifetime(&mut self) -> Token {
+        if let Some(char) = self
+            .source
+            .next_char_if(|char| char != '\r' && char != '\n')
+        {
+            // TODO: escape codes
+            if self.source.next_char_if(|char| char == '\'').is_some() {
+                // TODO: Char suffixes
+                Token::Literal(Literal::Char(char))
+            } else {
+                self.error("non-terminated character literal, lifetimes are not supported yet");
+                Token::Literal(Literal::Char(char))
+            }
+        } else {
+            self.error("empty character literal or lifetime");
+            Token::Literal(Literal::Char('\0'))
+        }
+    }
+
+    fn parse_string(&mut self) -> Literal {
         let mut buffer = String::new();
         loop {
-            if let Some(char) = self.source.next_char()? {
-                if char == quote {
+            if let Some(char) = self
+                .source
+                .next_char_if(|char| char != '\r' && char != '\n')
+            {
+                if char == '"' {
                     break;
                 }
                 // TODO: escape codes, ref: https://github.com/MaxXSoft/laps/blob/3e193c16c2baf9baa65ea9b7c5d81f8d891bd858/src/lexer.rs#L229
                 buffer.push(char);
             } else {
-                return self.span(LexerError::UnterminatedStringLiteral);
+                self.error("unterminated string literal");
             }
         }
-        Ok(buffer)
+        // TODO: String suffixes
+        Literal::String(buffer)
     }
 }
 
 // * ------------------------------------ Errors ------------------------------------ * //
 impl<R: Read> TokenStream<R> {
-    pub fn span<T, E>(
-        &mut self,
-        error: impl Into<SpannedError<E>>,
-    ) -> std::result::Result<T, SpannedError<E>> {
-        let mut error = error.into();
-        error.at = self.token_start.take();
-        error.sourcepath = self.source.path().clone();
-        Err(error)
+    pub fn error(&mut self, message: impl Into<String>) {
+        self.errors.push(CompilationError {
+            message: message.into(),
+            sourcepath: self.source.path().clone(),
+            at: self.token_start.clone(),
+        });
+    }
+
+    pub fn errors(&self) -> &[CompilationError] {
+        self.errors.as_ref()
+    }
+
+    pub fn take_errors(self) -> Vec<CompilationError> {
+        self.errors
     }
 }

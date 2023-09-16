@@ -10,7 +10,6 @@ xid = ["dep:unicode-ident"]
 # asmgen = { path = "../../Libraries/asmgen" }
 
 clap = { version = "4.4.0", features = ["derive"] }
-thiserror = "1.0.48"
 
 lazy-regex = { version = "3.0.1", features = ["std"] }
 unicode-ident = { version = "1.0.11", optional = true }

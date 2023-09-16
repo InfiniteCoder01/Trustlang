@@ -1,9 +1,10 @@
-use super::{ParsingError, Result};
 use crate::lexer::*;
 use std::io::Read;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub enum Type {
+    #[default]
+    Unknown,
     Bool,
     Sized(SizedType, TypeSize),
 }
@@ -22,19 +23,24 @@ pub enum TypeSize {
 }
 
 impl Type {
-    pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Result<Self> {
-        let token = tokens
-            .next_token()?
-            .ok_or(ParsingError::ExpectedTypeGotEof)?;
-        let ty = if let Some(ty) = Self::parse_sized(&token) {
+    pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Self {
+        if let Some(token) = tokens.next_token() {
+            let ty = if let Some(ty) = Self::parse_sized(&token) {
+                ty
+            } else {
+                match token {
+                    Token::Ident(_, Some(Keyword::Bool)) => Type::Bool,
+                    token => {
+                        tokens.error(format!("expected type, got {token}"));
+                        Self::Unknown
+                    }
+                }
+            };
             ty
         } else {
-            match token {
-                Token::Ident(_, Some(Keyword::Bool)) => Type::Bool,
-                token => return tokens.span(ParsingError::ExpectedType(token)),
-            }
-        };
-        Ok(ty)
+            tokens.error("expected type");
+            Self::Unknown
+        }
     }
 
     fn parse_sized(token: &Token) -> Option<Type> {

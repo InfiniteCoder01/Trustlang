@@ -1,5 +1,4 @@
-use crate::SpannedError;
-use thiserror::Error;
+use crate::CompilationError;
 
 pub use chacacter_buffer::Cursor;
 pub use token_buffer::TokenBuffer;
@@ -83,16 +82,16 @@ mod chars {
 }
 
 // * ------------------------------------ Errors ------------------------------------ * //
-pub type Result<T> = std::result::Result<T, SpannedError<LexerError>>;
+// pub type Result<T> = std::result::Result<T, SpannedError<LexerError>>;
 
-#[derive(Error, Debug)]
-pub enum LexerError {
-    #[error("reading code from source failed")]
-    Source(#[from] std::io::Error),
-    #[error("unterminated string/character literal")]
-    UnterminatedStringLiteral,
-    #[error("expected char literal to contain 1 char, but it contains {0} chars")]
-    InvalidCharLiteralLength(usize),
-    #[error("failed to parse token that starts with {0:?}")]
-    DetermineToken(char),
-}
+// #[derive(Error, Debug)]
+// pub enum LexerError {
+//     #[error("reading code from source failed")]
+//     Source(#[from] std::io::Error),
+//     #[error("unterminated string/character literal")]
+//     UnterminatedStringLiteral,
+//     #[error("expected char literal to contain 1 char, but it contains {0} chars")]
+//     InvalidCharLiteralLength(usize),
+//     #[error("failed to parse token that starts with {0:?}")]
+//     DetermineToken(char),
+// }
