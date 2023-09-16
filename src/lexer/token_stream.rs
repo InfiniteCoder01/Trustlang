@@ -55,7 +55,8 @@ impl<R: Read> TokenStream<R> {
                             .expect("Internal error: Failed to parse a number!"),
                         _ => char
                             .to_digit(10)
-                            .expect("Internal error: Failed to parse a number!"),
+                            .expect("Internal error: Failed to parse a number!")
+                            as u128,
                     },
                 )));
                 // TODO: Number suffixes
@@ -64,6 +65,29 @@ impl<R: Read> TokenStream<R> {
             } else if char == '\"' {
                 return Some(Token::Literal(self.parse_string()));
             } else {
+                {
+                    let mut operators = ["|", "&", "||", "&&"];
+                    operators.sort();
+                    let mut buffer = char.to_string();
+                    while let Some(char) = self.source.peek_char() {
+                        buffer.push(char);
+                        if operators.contains(&buffer.as_str()) {
+                            self.source.next_char();
+                        } else {
+                            buffer.pop();
+                            break;
+                        }
+                    }
+                    if !operators.is_empty() {
+                        return Some(Token::Operator(match buffer.as_str() {
+                            "&&" => Operator::LogicalAnd,
+                            "||" => Operator::LogicalOr,
+                            operator => {
+                                panic!("Internal error: operator '{operator}' is not supported")
+                            }
+                        }));
+                    }
+                }
                 self.error(format!("failed to parse token that starts with {char:?}"));
             }
         }

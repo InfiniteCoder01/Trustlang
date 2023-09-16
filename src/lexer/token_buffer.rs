@@ -47,6 +47,18 @@ impl<R: Read> TokenBuffer<R> {
         .is_some()
     }
 
+    pub fn match_operator(&mut self, expectation: super::Operator) -> bool {
+        self.fill_token();
+        self.next_token_if(|token| {
+            if let Token::Operator(operator) = token {
+                operator == &expectation
+            } else {
+                false
+            }
+        })
+        .is_some()
+    }
+
     fn fill_token(&mut self) {
         if self.peek.is_none() {
             self.peek = self.token_stream.next_token();

@@ -10,6 +10,7 @@ pub mod token_stream;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
     Ident(String, Option<Keyword>),
+    Operator(Operator),
     Literal(Literal),
 }
 
@@ -21,19 +22,35 @@ pub enum Keyword {
     Bool,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Operator {
+    LogicalAnd,
+    LogicalOr,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Literal {
     Char(char),
     String(String),
     Bool(bool),
-    Int(u32),
+    Int(u128),
 }
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Token::Ident(ident, _) => write!(f, "Identifier '{}'", ident),
-            Token::Literal(literal) => write!(f, "Literal {}", literal),
+            Self::Ident(ident, _) => write!(f, "Identifier '{}'", ident),
+            Self::Operator(operator) => write!(f, "Operator '{}'", operator),
+            Self::Literal(literal) => write!(f, "Literal {}", literal),
+        }
+    }
+}
+
+impl std::fmt::Display for Operator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::LogicalOr => write!(f, "||"),
+            Self::LogicalAnd => write!(f, "&&"),
         }
     }
 }
@@ -41,10 +58,10 @@ impl std::fmt::Display for Token {
 impl std::fmt::Display for Literal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Literal::Char(characterer) => write!(f, "{:?}", characterer),
-            Literal::String(string) => write!(f, "{:?}", string),
-            Literal::Bool(boolean) => write!(f, "{}", boolean),
-            Literal::Int(integer) => write!(f, "{}", integer),
+            Self::Char(characterer) => write!(f, "{:?}", characterer),
+            Self::String(string) => write!(f, "{:?}", string),
+            Self::Bool(boolean) => write!(f, "{}", boolean),
+            Self::Int(integer) => write!(f, "{}", integer),
         }
     }
 }

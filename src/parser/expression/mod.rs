@@ -4,12 +4,15 @@ use std::io::Read;
 
 mod operator;
 
+pub use operator::BinaryOperator;
+
 #[derive(Clone, Debug, Default)]
 pub enum Expression {
     #[default]
     Unknown,
     Literal(Literal),
     TypeCast(Box<Expression>, Type),
+    Binary(Box<Expression>, BinaryOperator, Box<Expression>),
 }
 
 impl Expression {

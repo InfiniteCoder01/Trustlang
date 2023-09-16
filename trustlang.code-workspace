@@ -9,8 +9,7 @@
 			"path": "../../Libraries/orecc-front"
 		},
 		{
-			"name": "asmgen",
-			"path": "../../Libraries/asmgen"
+			"path": "../../Libraries/orecc-backend"
 		}
 	],
 	"settings": {}
