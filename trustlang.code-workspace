@@ -9,7 +9,7 @@
 			"path": "../../Libraries/orecc-front"
 		},
 		{
-			"path": "../../Libraries/orecc-backend"
+			"path": "../../Libraries/orecc-back"
 		}
 	],
 	"settings": {}

@@ -4,14 +4,15 @@ pub mod parser;
 pub fn parse<T: std::io::Read>(
     source: T,
     sourcepath: Option<&str>,
-) -> (Vec<parser::Expression>, Vec<CompilationError>) {
+) -> (String, Vec<CompilationError>) {
     use lexer::{TokenBuffer, TokenStream};
     let mut tokens = TokenBuffer::new(TokenStream::new(source, sourcepath));
     let mut expressions = Vec::new();
-    while let Some(expression) = parser::Expression::parse(&mut tokens) {
+    let mut backend = orecc_back::backends::x64::X64Backend::default();
+    while let Some(expression) = parser::expression::parse(&mut tokens, &mut backend) {
         expressions.push(expression);
     }
-    (expressions, tokens.take_errors())
+    (backend.to_string(), tokens.take_errors())
 }
 
 // * ------------------------------------ Errors ------------------------------------ * //

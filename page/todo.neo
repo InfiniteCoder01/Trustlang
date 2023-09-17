@@ -12,10 +12,10 @@
 [] OperatorExpression::BorrowExpression
 [] OperatorExpression::DereferenceExpression
 [] OperatorExpression::ErrorPropagationExpression
-[] OperatorExpression::ArithmeticOrLogicalExpression
+[x] OperatorExpression::ArithmeticOrLogicalExpression
 [] OperatorExpression::ComparisonExpression
-[] OperatorExpression::LazyBooleanExpression
-[x] OperatorExpression::TypeCastExpression
+[x] OperatorExpression::LazyBooleanExpression
+[] OperatorExpression::TypeCastExpression
 [] OperatorExpression::AssignmentExpression
 [] OperatorExpression::CompoundAssignmentExpression
 [] OperatorExpression

@@ -66,7 +66,9 @@ impl<R: Read> TokenStream<R> {
                 return Some(Token::Literal(self.parse_string()));
             } else {
                 {
-                    let mut operators = ["|", "&", "||", "&&"];
+                    let mut operators = [
+                        "+", "-", "*", "/", "%", "&", "|", "^", "&&", "||", "<<", ">>",
+                    ];
                     operators.sort();
                     let mut buffer = char.to_string();
                     while let Some(char) = self.source.peek_char() {
@@ -78,10 +80,21 @@ impl<R: Read> TokenStream<R> {
                             break;
                         }
                     }
+                    // + - * / % & | ^ << >>
                     if !operators.is_empty() {
                         return Some(Token::Operator(match buffer.as_str() {
+                            "+" => Operator::Plus,
+                            "-" => Operator::Minus,
+                            "*" => Operator::Star,
+                            "/" => Operator::Slash,
+                            "%" => Operator::Modulo,
+                            "&" => Operator::Ampersand,
+                            "|" => Operator::Bar,
+                            "^" => Operator::Carrot,
                             "&&" => Operator::LogicalAnd,
                             "||" => Operator::LogicalOr,
+                            "<<" => Operator::ShiftLeft,
+                            ">>" => Operator::ShiftRight,
                             operator => {
                                 panic!("Internal error: operator '{operator}' is not supported")
                             }

@@ -24,8 +24,18 @@ pub enum Keyword {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operator {
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Modulo,
+    Ampersand,
+    Bar,
+    Carrot,
     LogicalAnd,
     LogicalOr,
+    ShiftLeft,
+    ShiftRight,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -35,7 +45,6 @@ pub enum Literal {
     Bool(bool),
     Int(u128),
 }
-
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -49,8 +58,18 @@ impl std::fmt::Display for Token {
 impl std::fmt::Display for Operator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::LogicalOr => write!(f, "||"),
+            Self::Plus => write!(f, "+"),
+            Self::Minus => write!(f, "-"),
+            Self::Star => write!(f, "*"),
+            Self::Slash => write!(f, "/"),
+            Self::Modulo => write!(f, "%"),
+            Self::Ampersand => write!(f, "&"),
+            Self::Bar => write!(f, "|"),
+            Self::Carrot => write!(f, "^"),
             Self::LogicalAnd => write!(f, "&&"),
+            Self::LogicalOr => write!(f, "||"),
+            Self::ShiftLeft => write!(f, "<<"),
+            Self::ShiftRight => write!(f, ">>"),
         }
     }
 }
