@@ -66,39 +66,51 @@ impl<R: Read> TokenStream<R> {
                 return Some(Token::Literal(self.parse_string()));
             } else {
                 {
+                    #[rustfmt::skip]
                     let mut operators = [
-                        "+", "-", "*", "/", "%", "&", "|", "^", "&&", "||", "<<", ">>",
+                        "+", "-", "*", "/", "%",
+                        "&", "|", "^",
+                        "(", ")",
+                        "&&", "||", "<<", ">>",
                     ];
+
                     operators.sort();
                     let mut buffer = char.to_string();
-                    while let Some(char) = self.source.peek_char() {
-                        buffer.push(char);
-                        if operators.contains(&buffer.as_str()) {
-                            self.source.next_char();
-                        } else {
-                            buffer.pop();
-                            break;
-                        }
-                    }
-                    // + - * / % & | ^ << >>
-                    if !operators.is_empty() {
-                        return Some(Token::Operator(match buffer.as_str() {
-                            "+" => Operator::Plus,
-                            "-" => Operator::Minus,
-                            "*" => Operator::Star,
-                            "/" => Operator::Slash,
-                            "%" => Operator::Modulo,
-                            "&" => Operator::Ampersand,
-                            "|" => Operator::Bar,
-                            "^" => Operator::Carrot,
-                            "&&" => Operator::LogicalAnd,
-                            "||" => Operator::LogicalOr,
-                            "<<" => Operator::ShiftLeft,
-                            ">>" => Operator::ShiftRight,
-                            operator => {
-                                panic!("Internal error: operator '{operator}' is not supported")
+                    if operators.contains(&buffer.as_str()) {
+                        while let Some(char) = self.source.peek_char() {
+                            buffer.push(char);
+                            if operators.contains(&buffer.as_str()) {
+                                self.source.next_char();
+                            } else {
+                                buffer.pop();
+                                break;
                             }
-                        }));
+                        }
+
+                        if !operators.is_empty() {
+                            return Some(Token::Operator(match buffer.as_str() {
+                                "+" => Operator::Plus,
+                                "-" => Operator::Minus,
+                                "*" => Operator::Star,
+                                "/" => Operator::Slash,
+                                "%" => Operator::Modulo,
+
+                                "&" => Operator::Ampersand,
+                                "|" => Operator::Bar,
+                                "^" => Operator::Carrot,
+
+                                "(" => Operator::LParen,
+                                ")" => Operator::RParen,
+
+                                "&&" => Operator::LogicalAnd,
+                                "||" => Operator::LogicalOr,
+                                "<<" => Operator::ShiftLeft,
+                                ">>" => Operator::ShiftRight,
+                                operator => {
+                                    panic!("Internal error: operator '{operator}' is not supported")
+                                }
+                            }));
+                        }
                     }
                 }
                 self.error(format!("failed to parse token that starts with {char:?}"));

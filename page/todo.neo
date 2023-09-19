@@ -9,15 +9,15 @@
 [x] LiteralExpression
 
 [] OperatorExpression::NegationExpression
-[] OperatorExpression::BorrowExpression
-[] OperatorExpression::DereferenceExpression
-[] OperatorExpression::ErrorPropagationExpression
 [x] OperatorExpression::ArithmeticOrLogicalExpression
 [] OperatorExpression::ComparisonExpression
 [x] OperatorExpression::LazyBooleanExpression
 [] OperatorExpression::TypeCastExpression
 [] OperatorExpression::AssignmentExpression
 [] OperatorExpression::CompoundAssignmentExpression
+[] OperatorExpression::BorrowExpression
+[] OperatorExpression::DereferenceExpression
+[] OperatorExpression::ErrorPropagationExpression
 [] OperatorExpression
 
 [] Types

@@ -26,6 +26,18 @@ impl<R: Read> TokenBuffer<R> {
         self.peek.as_ref()
     }
 
+    pub fn next_indentifier(&mut self) -> Option<String> {
+        self.fill_token();
+        if let Some(Token::Ident(_, _)) = &self.peek {
+            match self.peek.take() {
+                Some(Token::Ident(identifier, _)) => Some(identifier),
+                _ => unreachable!(),
+            }
+        } else {
+            None
+        }
+    }
+
     pub fn next_token_if(&mut self, pred: impl FnOnce(&Token) -> bool) -> Option<Token> {
         self.fill_token();
         if self.peek.as_ref().is_some_and(pred) {
@@ -33,6 +45,13 @@ impl<R: Read> TokenBuffer<R> {
         } else {
             None
         }
+    }
+
+    pub fn got_token(&mut self) -> String {
+        self.fill_token();
+        self.peek
+            .as_ref()
+            .map_or_else(|| String::from("<eof>"), |token| token.to_string())
     }
 
     pub fn match_keyword(&mut self, expectation: super::Keyword) -> bool {

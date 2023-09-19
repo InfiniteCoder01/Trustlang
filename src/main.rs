@@ -14,7 +14,7 @@ pub fn compile<T: std::io::Read>(source: T, sourcepath: Option<&str>) {
     if errors.is_empty() {
         println!("Compiled successfully!\nResult:\n{result}");
     } else {
-        eprintln!("Compiled with errors: errors{errors:?}!");
+        eprintln!("Compiled with errors: {errors:?}!");
         println!("Result: {result:?}");
     }
 }
