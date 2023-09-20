@@ -17,9 +17,6 @@
         {
           devShells.default = mkShell {
             buildInputs = [ rust-bin.beta.latest.default ];
-            # shellHook = ''
-            #   export PATH=~/opt/bin:'/home/infinitecoder/.cargo/bin'
-            # '';
           };
         }
       );
