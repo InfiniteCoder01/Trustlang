@@ -2,6 +2,7 @@
 -- title: Project things
 
 [] Partially move lexer out to a separate "Compiler frontend" crate
+[] Add serde as a feature
 
 -- todo
 -- title: Current: Expressions
@@ -43,7 +44,7 @@
 [] BreakExpression
 [] ContinueExpression
 
-[] BlockExpression
+[x] BlockExpression
 [] UnsafeBlockExpression
 [] LoopExpression
 [] IfExpression
@@ -58,7 +59,7 @@
 -- todo
 -- title: AST Structures
 
-[] Functions
+[x] Functions
 [] Structs
 [] Impls
 [] Enums

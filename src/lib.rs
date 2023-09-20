@@ -8,11 +8,9 @@ pub fn parse<T: std::io::Read>(
     use lexer::{TokenBuffer, TokenStream};
     let mut tokens = TokenBuffer::new(TokenStream::new(source, sourcepath));
     // let mut backend = orecc_back::backends::x64::X64Backend::default();
-    while let Some(expression) = parser::expression::parse(&mut tokens) {
-        dbg!(expression);
+    while let Some(declaration) = parser::item::parse(&mut tokens) {
+        dbg!(declaration);
     }
-    // while parser::declaration::parse(&mut tokens, &mut backend) {
-    // }
     let backend = "";
     (backend.to_string(), tokens.take_errors())
 }

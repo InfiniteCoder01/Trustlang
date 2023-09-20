@@ -34,8 +34,12 @@ pub enum Operator {
     Bar,
     Carrot,
 
+    Semicolon,
+
     LParen,
     RParen,
+    LBrace,
+    RBrace,
 
     LogicalAnd,
     LogicalOr,
@@ -74,8 +78,12 @@ impl std::fmt::Display for Operator {
             Self::Bar => write!(f, "|"),
             Self::Carrot => write!(f, "^"),
 
+            Self::Semicolon => write!(f, ";"),
+
             Self::LParen => write!(f, "("),
             Self::RParen => write!(f, ")"),
+            Self::LBrace => write!(f, "{{"),
+            Self::RBrace => write!(f, "}}"),
 
             Self::LogicalAnd => write!(f, "&&"),
             Self::LogicalOr => write!(f, "||"),

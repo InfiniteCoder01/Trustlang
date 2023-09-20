@@ -70,7 +70,8 @@ impl<R: Read> TokenStream<R> {
                     let mut operators = [
                         "+", "-", "*", "/", "%",
                         "&", "|", "^",
-                        "(", ")",
+                        ";",
+                        "(", ")", "{", "}",
                         "&&", "||", "<<", ">>",
                     ];
 
@@ -99,8 +100,12 @@ impl<R: Read> TokenStream<R> {
                                 "|" => Operator::Bar,
                                 "^" => Operator::Carrot,
 
+                                ";" => Operator::Semicolon,
+
                                 "(" => Operator::LParen,
                                 ")" => Operator::RParen,
+                                "{" => Operator::LBrace,
+                                "}" => Operator::RBrace,
 
                                 "&&" => Operator::LogicalAnd,
                                 "||" => Operator::LogicalOr,

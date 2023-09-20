@@ -1,1 +1,4 @@
-fn main() // {}
+fn main() {
+    fn inner() { 5 }
+    5
+}

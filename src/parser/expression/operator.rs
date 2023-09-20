@@ -52,8 +52,8 @@ pub fn binary<R: Read>(tokens: &mut TokenBuffer<R>, precedance: usize) -> Option
 // ) -> Option<ExpressionNode<B::DataType>> {
 //     let mut lhs = super::parse_literal(tokens, backend)?;
 //
-//     // while tokens.match_keyword(Keyword::As) {
-//     //     lhs = Expression::TypeCast(Box::new(lhs), Type::parse(tokens));
-//     // }
+//     while tokens.match_keyword(Keyword::As) {
+//         lhs = Expression::TypeCast(Box::new(lhs), Type::parse(tokens));
+//     }
 //     Some(lhs)
 // }
