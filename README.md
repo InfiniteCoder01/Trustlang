@@ -6,7 +6,7 @@ Trustlang compiler also wants to achieve those goals:
 - Be able to generate functions, compatible with C, C++, Rust and maybe some others
 
 # Compilation process
-Compilation process is intended to be fast and simple, works in 2 passes:
+Compilation process is intended to be fast and simple:
 - Pass 1:
     - Lazy tokenization
     - Macro invocation
@@ -17,4 +17,5 @@ Compilation process is intended to be fast and simple, works in 2 passes:
     - Type checking
     - Operator overloading
     - Borrow checking
-    - Backend invokation (compilation & optimization)
+    - IR
+- Backend work (compilation & optimization)

@@ -1,6 +1,6 @@
 pub use super::types::Type;
 use crate::lexer::*;
-use orecc_back::ast::*;
+use orecc_back::ir::*;
 use std::io::Read;
 
 pub mod block;
@@ -17,7 +17,16 @@ pub enum Expression {
     Binary(Box<Expression>, BinaryOperation, Box<Expression>),
 }
 
-// * ------------------------------------ Parsers ----------------------------------- * //
+impl Expression {
+    pub fn is_block(&self) -> bool {
+        match self {
+            Expression::Block(_) => true,
+            _ => false,
+        }
+    }
+}
+
+// * ------------------------------------- Parse ------------------------------------ * //
 pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Expression> {
     operator::binary(tokens, 0)
 }
@@ -35,6 +44,45 @@ pub fn literal<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Expression> {
         }
     }
 }
+
+// // * ------------------------------------- Build ------------------------------------ * //
+// pub enum BuiltValue<B: Backend> {
+//     Never,
+//     Unit,
+//     Data { data: DataType<B> },
+// }
+
+// impl<B: Backend> BuiltValue<B> {
+//     pub fn as_data(self) -> Option<DataType<B>> {
+//         match self {
+//             BuiltValue::Never => None,
+//             BuiltValue::Unit => None,
+//             BuiltValue::Data { data } => Some(data),
+//         }
+//     }
+// }
+
+// impl Expression {
+//     pub fn build<B: Backend>(self, backend: &B, function: &mut B::Function) -> BuiltValue<B> {
+//         match self {
+//             Expression::Tuple(values) => {
+//                 if values.is_empty() {
+//                     BuiltValue::Unit
+//                 } else {
+//                     todo!()
+//                 }
+//             }
+//             Expression::Block(_) => todo!(),
+//             Expression::Literal(literal) => match literal {
+//                 Literal::Char(_) => todo!(),
+//                 Literal::String(_) => todo!(),
+//                 Literal::Bool(_) => todo!(),
+//                 Literal::Int(_) => todo!(),
+//             },
+//             Expression::Binary(_, _, _) => todo!(),
+//         }
+//     }
+// }
 
 // * ------------------------------------- Tests ------------------------------------ * //
 #[cfg(test)]

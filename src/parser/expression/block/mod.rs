@@ -1,5 +1,6 @@
 use super::Expression;
 use crate::lexer::*;
+use orecc_back::ir::*;
 use std::io::Read;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -22,15 +23,15 @@ pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
                 // Item Statement
                 statements.push(Statement::Item(item));
             } else if let Some(expression) = super::parse(tokens) {
-                if tokens.match_operator(Operator::Semicolon) {
-                    // Expression Statement
-                    statements.push(Statement::Expression(expression));
-                } else if tokens.match_operator(Operator::RBrace) {
+                if tokens.match_operator(Operator::RBrace) {
                     // Tail Return
                     return Some(Block {
                         statements,
                         tail_return: expression,
                     });
+                } else if tokens.match_operator(Operator::Semicolon) || expression.is_block() {
+                    // Expression Statement
+                    statements.push(Statement::Expression(expression));
                 } else {
                     // Unterminated expression statement or tail return
                     let got = tokens.got_token();
@@ -51,3 +52,23 @@ pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
         None
     }
 }
+
+// impl Block {
+//     pub fn build<B: Backend>(self, backend: &B, function: &mut B::Function) -> BuiltValue<B> {
+//         // for statement in self.statements {
+//         //     statement.build(backend);
+//         // }
+//         self.tail_return.build(backend, function)
+//     }
+// }
+
+// impl Statement {
+//     pub fn build(self, backend: &mut impl Backend) {
+//         match self {
+//             Statement::Item(item) => {
+//                 item.build(backend);
+//             }
+//             Statement::Expression(_) => {}
+//         }
+//     }
+// }

@@ -7,12 +7,12 @@ pub fn parse<T: std::io::Read>(
 ) -> (String, Vec<CompilationError>) {
     use lexer::{TokenBuffer, TokenStream};
     let mut tokens = TokenBuffer::new(TokenStream::new(source, sourcepath));
-    // let mut backend = orecc_back::backends::x64::X64Backend::default();
+    let mut ir = orecc_back::ir::Module::default();
     while let Some(declaration) = parser::item::parse(&mut tokens) {
-        dbg!(declaration);
+        // dbg!(declaration);
+        declaration.build(&mut ir);
     }
-    let backend = "";
-    (backend.to_string(), tokens.take_errors())
+    (ir.to_string(), tokens.take_errors())
 }
 
 // * ------------------------------------ Errors ------------------------------------ * //
