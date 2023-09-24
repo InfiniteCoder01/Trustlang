@@ -1,3 +1,4 @@
+use super::expression::BuiltValue;
 use crate::lexer::*;
 use orecc_back::ir::*;
 use std::io::Read;
@@ -22,8 +23,10 @@ impl Item {
         match self {
             Item::Function(function) => {
                 let mut built_function = Function::new(function.name, Type::Void);
-                // let return_value = function.body.build(backend, &mut built_function).as_data();
-                // built_function.end(backend, return_value);
+                let return_value = function.body.build(&module, &mut built_function);
+                if let Some(data) = return_value.as_data() {
+                    built_function.assembly.push(Instruction::Return(data));
+                }
                 module.functions.push(built_function);
             }
         }

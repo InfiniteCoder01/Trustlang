@@ -45,44 +45,57 @@ pub fn literal<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Expression> {
     }
 }
 
-// // * ------------------------------------- Build ------------------------------------ * //
-// pub enum BuiltValue<B: Backend> {
-//     Never,
-//     Unit,
-//     Data { data: DataType<B> },
-// }
+// * ------------------------------------- Build ------------------------------------ * //
+pub enum BuiltValue {
+    Never,
+    Unit,
+    Data { data: Value },
+}
 
-// impl<B: Backend> BuiltValue<B> {
-//     pub fn as_data(self) -> Option<DataType<B>> {
-//         match self {
-//             BuiltValue::Never => None,
-//             BuiltValue::Unit => None,
-//             BuiltValue::Data { data } => Some(data),
-//         }
-//     }
-// }
+impl BuiltValue {
+    pub fn data(data: Value) -> Self {
+        Self::Data { data }
+    }
 
-// impl Expression {
-//     pub fn build<B: Backend>(self, backend: &B, function: &mut B::Function) -> BuiltValue<B> {
-//         match self {
-//             Expression::Tuple(values) => {
-//                 if values.is_empty() {
-//                     BuiltValue::Unit
-//                 } else {
-//                     todo!()
-//                 }
-//             }
-//             Expression::Block(_) => todo!(),
-//             Expression::Literal(literal) => match literal {
-//                 Literal::Char(_) => todo!(),
-//                 Literal::String(_) => todo!(),
-//                 Literal::Bool(_) => todo!(),
-//                 Literal::Int(_) => todo!(),
-//             },
-//             Expression::Binary(_, _, _) => todo!(),
-//         }
-//     }
-// }
+    pub fn as_data(self) -> Option<Value> {
+        match self {
+            BuiltValue::Never => None,
+            BuiltValue::Unit => None,
+            BuiltValue::Data { data } => Some(data),
+        }
+    }
+}
+
+impl Expression {
+    pub fn build(self, module: &Module, function: &mut Function) -> BuiltValue {
+        match self {
+            Expression::Tuple(values) => {
+                if values.is_empty() {
+                    BuiltValue::Unit
+                } else {
+                    todo!()
+                }
+            }
+            Expression::Block(_) => todo!(),
+            Expression::Literal(literal) => match literal {
+                Literal::Char(_) => todo!(),
+                Literal::String(_) => todo!(),
+                Literal::Bool(_) => todo!(),
+                Literal::Int(value) => BuiltValue::Data {
+                    data: Value::Unsigned(value),
+                },
+            },
+            Expression::Binary(lhs, op, rhs) => {
+                let lhs = lhs.build(module, function);
+                let rhs = rhs.build(module, function);
+                match (lhs.as_data(), rhs.as_data()) {
+                    (Some(lhs), Some(rhs)) => BuiltValue::data(function.binary_op(op, lhs, rhs)),
+                    _ => todo!("Type checking"),
+                }
+            }
+        }
+    }
+}
 
 // * ------------------------------------- Tests ------------------------------------ * //
 #[cfg(test)]

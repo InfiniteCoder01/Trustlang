@@ -1,4 +1,4 @@
-use super::Expression;
+use super::{BuiltValue, Expression};
 use crate::lexer::*;
 use orecc_back::ir::*;
 use std::io::Read;
@@ -53,14 +53,15 @@ pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
     }
 }
 
-// impl Block {
-//     pub fn build<B: Backend>(self, backend: &B, function: &mut B::Function) -> BuiltValue<B> {
-//         // for statement in self.statements {
-//         //     statement.build(backend);
-//         // }
-//         self.tail_return.build(backend, function)
-//     }
-// }
+// * ------------------------------------- Build ------------------------------------ * //
+impl Block {
+    pub fn build(self, module: &Module, function: &mut Function) -> BuiltValue {
+        // for statement in self.statements {
+        //     statement.build(backend);
+        // }
+        self.tail_return.build(module, function)
+    }
+}
 
 // impl Statement {
 //     pub fn build(self, backend: &mut impl Backend) {
