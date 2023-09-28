@@ -8,14 +8,14 @@ Trustlang compiler also wants to achieve those goals:
 # Compilation process
 Compilation process is intended to be fast and simple:
 - Pass 1:
-    - Lazy tokenization
+    - \[Kinda frontended] Lazy tokenization
     - Macro invocation
     - Parsing AST
     - Name indexing
     - Type inference
-- Pass 2 (traverses AST, runs on macros immediately):
+- Pass 2 (traverses AST, runs on macros lazely):
     - Type checking
     - Operator overloading
     - Borrow checking
-    - IR
+    - \[Backend] IR
 - Backend work (compilation & optimization)

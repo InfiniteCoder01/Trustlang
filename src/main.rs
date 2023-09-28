@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::io::{BufRead, Write};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -10,36 +9,44 @@ struct Cli {
 }
 
 pub fn compile<T: std::io::Read>(source: T, sourcepath: Option<&str>) {
-    let (result, errors) = trustlang::parse(source, sourcepath);
-    if errors.is_empty() {
-        println!("Compiled successfully!\nResult:\n{result}");
-    } else {
-        eprintln!("Compiled with errors: {errors:?}!");
-        println!("Result: {result:?}");
+    match trustlang::parse(source, sourcepath) {
+        Ok(result) => println!("Compiled successfully!\nResult:\n{result}"),
+        Err(errors) => {
+            eprintln!("Compilation Failed!");
+            for error in errors {
+                eprintln!("{}", error)
+            }
+        }
     }
 }
 
 fn main() {
-    let cli = Cli::parse();
-    if let Some(file) = cli.file {
-        match std::fs::File::open(&file) {
-            Ok(source) => compile(source, Some(&file)),
-            Err(err) => eprintln!("Failed to open file {:?}: {}", file, err),
-        }
-    } else {
-        loop {
-            print!("> ");
-            std::io::stdout().flush().unwrap();
-            if let Some(line) = std::io::stdin()
-                .lock()
-                .lines()
-                .next()
-                .and_then(|line| line.ok())
-            {
-                compile(std::io::Cursor::new(line), None);
-            } else {
-                break;
-            }
-        }
-    }
+    // let cli = Cli::parse();
+    // if let Some(file) = cli.file {
+    //     match std::fs::File::open(&file) {
+    //         Ok(source) => compile(source, Some(&file)),
+    //         Err(err) => eprintln!("Failed to open file {:?}: {}", file, err),
+    //     }
+    // } else {
+    //     loop {
+    //         print!("> ");
+    //         std::io::stdout().flush().unwrap();
+    //         if let Some(line) = std::io::stdin()
+    //             .lock()
+    //             .lines()
+    //             .next()
+    //             .and_then(|line| line.ok())
+    //         {
+    //             compile(std::io::Cursor::new(line), None);
+    //         } else {
+    //             break;
+    //         }
+    //     }
+    // }
+
+    let mut backend = orecc_back::backends::x86_64::X86_64::default();
+    backend.instruction(None, None, vec![0xc3], None, None, None, None);
+
+    let mut out_file = std::fs::File::create("test.o").unwrap();
+    orecc_back::packaging::elf::pack(&mut out_file, &backend.assembly).unwrap();
 }

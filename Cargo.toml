@@ -7,9 +7,11 @@ edition = "2021"
 xid = ["orecc-front/xid"]
 
 [dependencies]
-# orecc-front = { path = "../../Libraries/orecc-front" }
-orecc-front = { git = "https://github.com/InfiniteCoder01/orecc-front.git" }
+# orecc-front = { git = "https://github.com/InfiniteCoder01/orecc-front.git" }
+# orecc-back = { git = "https://github.com/InfiniteCoder01/orecc-back.git" }
+orecc-front = { path = "../../Libraries/orecc-front" }
 orecc-back = { path = "../../Libraries/orecc-back" }
 
 clap = { version = "4.4.0", features = ["derive"] }
 rustyline = "12.0.0"
+object = { version = "0.32.1", features = ["write", "write_core", "write_std"] }

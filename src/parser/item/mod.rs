@@ -25,7 +25,7 @@ impl Item {
                 let mut built_function = Function::new(function.name, Type::Void);
                 let return_value = function.body.build(&module, &mut built_function);
                 if let Some(data) = return_value.as_data() {
-                    built_function.assembly.push(Instruction::Return(data));
+                    built_function.return_(data);
                 }
                 module.functions.push(built_function);
             }
