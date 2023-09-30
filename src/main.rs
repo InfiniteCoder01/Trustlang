@@ -49,4 +49,6 @@ fn main() {
 
     let mut out_file = std::fs::File::create("test.o").unwrap();
     orecc_back::packaging::elf::pack(&mut out_file, &backend.assembly).unwrap();
+    // let mut file = std::fs::File::open("test.o").unwrap();
+    // orecc_back::packaging::elf::read(&mut file);
 }

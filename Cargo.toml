@@ -9,8 +9,8 @@ xid = ["orecc-front/xid"]
 [dependencies]
 # orecc-front = { git = "https://github.com/InfiniteCoder01/orecc-front.git" }
 # orecc-back = { git = "https://github.com/InfiniteCoder01/orecc-back.git" }
-orecc-front = { path = "../../Libraries/orecc-front" }
-orecc-back = { path = "../../Libraries/orecc-back" }
+orecc-front = { path = "../../Libraries/orecc/orecc-front" }
+orecc-back = { path = "../../Libraries/orecc/orecc-back" }
 
 clap = { version = "4.4.0", features = ["derive"] }
 rustyline = "12.0.0"

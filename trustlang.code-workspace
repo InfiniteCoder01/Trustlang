@@ -5,11 +5,10 @@
 			"path": "."
 		},
 		{
-			"name": "orecc-front",
-			"path": "../../Libraries/orecc-front"
+			"path": "../../Libraries/orecc/orecc-back"
 		},
 		{
-			"path": "../../Libraries/orecc-back"
+			"path": "../../Libraries/orecc/orecc-elf"
 		}
 	],
 	"settings": {}
