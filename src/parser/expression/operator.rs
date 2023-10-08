@@ -1,7 +1,7 @@
+use codespan_reporting::diagnostic::*;
 use super::*;
-use std::io::Read;
 
-pub fn binary<R: Read>(tokens: &mut TokenBuffer<R>, precedance: usize) -> Option<Expression> {
+pub fn binary(tokens: &mut TokenBuffer, precedance: usize) -> Option<Expression> {
     let transitions = [
         &[(Operator::LogicalOr, BinaryOperation::LogicalOr)] as &[(Operator, BinaryOperation)],
         &[(Operator::LogicalAnd, BinaryOperation::LogicalAnd)],
@@ -36,7 +36,7 @@ pub fn binary<R: Read>(tokens: &mut TokenBuffer<R>, precedance: usize) -> Option
                     continue 'chain;
                 } else {
                     let got = tokens.got_token();
-                    tokens.error(format!("expected expression, got {}", got));
+                    tokens.codebase().emit(Diagnostic::error().with_message(format!("expected expression, got {got}")));
                     break 'chain;
                 }
             }

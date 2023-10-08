@@ -9,6 +9,9 @@
 		},
 		{
 			"path": "../../Libraries/orecc/orecc-elf"
+		},
+		{
+			"path": "../../Libraries/orecc/orecc-front"
 		}
 	],
 	"settings": {}

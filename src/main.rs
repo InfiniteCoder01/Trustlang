@@ -1,4 +1,5 @@
 use clap::Parser;
+use trustlang::Codebase;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -8,47 +9,75 @@ struct Cli {
     file: Option<String>,
 }
 
-pub fn compile<T: std::io::Read>(source: T, sourcepath: Option<&str>) {
-    match trustlang::parse(source, sourcepath) {
-        Ok(result) => println!("Compiled successfully!\nResult:\n{result}"),
-        Err(errors) => {
-            eprintln!("Compilation Failed!");
-            for error in errors {
-                eprintln!("{}", error)
-            }
-        }
+pub fn compile(codebase: &mut Codebase) {
+    match trustlang::parse(codebase) {
+        Some(result) => println!("Compiled successfully!\nResult:\n{result}"),
+        None => eprintln!("Compilation Failed!"),
     }
 }
 
 fn main() {
-    // let cli = Cli::parse();
-    // if let Some(file) = cli.file {
-    //     match std::fs::File::open(&file) {
-    //         Ok(source) => compile(source, Some(&file)),
-    //         Err(err) => eprintln!("Failed to open file {:?}: {}", file, err),
-    //     }
-    // } else {
-    //     loop {
-    //         print!("> ");
-    //         std::io::stdout().flush().unwrap();
-    //         if let Some(line) = std::io::stdin()
-    //             .lock()
-    //             .lines()
-    //             .next()
-    //             .and_then(|line| line.ok())
-    //         {
-    //             compile(std::io::Cursor::new(line), None);
-    //         } else {
-    //             break;
-    //         }
-    //     }
-    // }
+    let mut rl = rustyline::DefaultEditor::new().unwrap();
+    let cli = Cli::parse();
+    let mut codebase = Codebase::new();
+    if let Some(file) = cli.file {
+        match std::fs::read_to_string(&file) {
+            Ok(source) => {
+                codebase.add(file, source);
+                compile(&mut codebase);
+            }
+            Err(err) => eprintln!("Failed to open file {file:?}: {err}"),
+        }
+    } else {
+        loop {
+            let readline = rl.readline("> ");
+            match readline {
+                Ok(line) => {
+                    rl.add_history_entry(line.as_str()).unwrap();
+                    codebase.add(String::from("<buffer>"), line);
+                    compile(&mut codebase);
+                }
+                Err(rustyline::error::ReadlineError::Interrupted) => {
+                    println!("CTRL-C");
+                    break;
+                }
+                Err(rustyline::error::ReadlineError::Eof) => {
+                    println!("CTRL-D");
+                    break;
+                }
+                Err(err) => {
+                    println!("Error: {err:?}");
+                    break;
+                }
+            }
+        }
+    }
 
-    let mut backend = orecc_back::backends::x86_64::X86_64::default();
-    backend.instruction(None, None, vec![0xc3], None, None, None, None);
-
-    let mut out_file = std::fs::File::create("test.o").unwrap();
-    orecc_back::packaging::elf::pack(&mut out_file, &backend.assembly).unwrap();
-    // let mut file = std::fs::File::open("test.o").unwrap();
-    // orecc_back::packaging::elf::read(&mut file);
+    // let mut backend = orecc_back::backends::x86_64::X86_64::default();
+    // backend.instruction(
+    //     None,
+    //     Some(orecc_back::backends::x86_64::REX::new(
+    //         true, false, false, false,
+    //     )),
+    //     vec![0xc7],
+    //     Some(orecc_back::backends::x86_64::ModRM::new(3, 0, 0)),
+    //     None,
+    //     None,
+    //     Some(orecc_back::backends::x86_64::Immediate::Imm64(60)),
+    // );
+    // backend.instruction(
+    //     None,
+    //     Some(orecc_back::backends::x86_64::REX::new(
+    //         true, false, false, false,
+    //     )),
+    //     vec![0xc7],
+    //     Some(orecc_back::backends::x86_64::ModRM::new(3, 0, 7)),
+    //     None,
+    //     None,
+    //     Some(orecc_back::backends::x86_64::Immediate::Imm64(42)),
+    // );
+    // backend.instruction(None, None, vec![0x0f, 0x05], None, None, None, None);
+    // let mut out_file = std::fs::File::create("test.o").unwrap();
+    // orecc_back::packaging::elf::pack(&mut out_file, target_lexicon::Triple::host(), &backend.assembly)
+    //     .unwrap();
 }

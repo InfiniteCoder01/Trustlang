@@ -1,10 +1,9 @@
-use super::{BuiltValue, Expression};
+use super::Expression;
 use crate::lexer::*;
-use orecc_back::ir::*;
-use std::io::Read;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Block {
+    span: Span,
     statements: Vec<Statement>,
     tail_return: Expression,
 }
@@ -15,7 +14,8 @@ pub enum Statement {
     Expression(Expression),
 }
 
-pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
+pub fn parse(tokens: &mut TokenBuffer) -> Option<Block> {
+    let span = tokens.cursor();
     if tokens.match_operator(Operator::LBrace) {
         let mut statements = Vec::new();
         while !tokens.match_operator(Operator::RBrace) {
@@ -26,6 +26,7 @@ pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
                 if tokens.match_operator(Operator::RBrace) {
                     // Tail Return
                     return Some(Block {
+                        span: span..tokens.cursor(),
                         statements,
                         tail_return: expression,
                     });
@@ -35,16 +36,17 @@ pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
                 } else {
                     // Unterminated expression statement or tail return
                     let got = tokens.got_token();
-                    tokens.error(format!("expected ';' or '}}', got {}", got));
+                    tokens.error(format!("expected ';' or '}}', got {got}"));
                     return None;
                 }
             } else {
                 // Expected expression or statement
                 let got = tokens.got_token();
-                tokens.error(format!("expected an expression or statement, got {}", got));
+                tokens.error(format!("expected an expression or statement, got {got}"));
             }
         }
         Some(Block {
+            span: span..tokens.cursor(),
             statements,
             tail_return: Expression::Tuple(Vec::new()),
         })
@@ -52,24 +54,3 @@ pub fn parse<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Block> {
         None
     }
 }
-
-// * ------------------------------------- Build ------------------------------------ * //
-impl Block {
-    pub fn build(self, module: &Module, function: &mut Function) -> BuiltValue {
-        // for statement in self.statements {
-        //     statement.build(backend);
-        // }
-        self.tail_return.build(module, function)
-    }
-}
-
-// impl Statement {
-//     pub fn build(self, backend: &mut impl Backend) {
-//         match self {
-//             Statement::Item(item) => {
-//                 item.build(backend);
-//             }
-//             Statement::Expression(_) => {}
-//         }
-//     }
-// }

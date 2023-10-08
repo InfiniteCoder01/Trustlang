@@ -1,71 +1,88 @@
 use super::*;
-use orecc_front::chacacter_buffer::CharacterBuffer;
+use codespan_reporting::diagnostic::*;
 use orecc_front::chars;
-use std::io::Read;
+use orecc_front::Codebase;
+use orecc_front::TokenReader;
 
-pub struct TokenStream<R: Read> {
-    source: CharacterBuffer<R>,
-    token_start: Option<Cursor>,
-    errors: Vec<CompilationError>,
-    sourcepath: Option<String>,
+#[derive(Debug)]
+pub struct TokenStream<'a> {
+    source: TokenReader,
+    codebase: &'a mut Codebase,
+    pub file_id: usize,
 }
 
-impl<R: Read> TokenStream<R> {
-    pub fn new(source: R, sourcepath: Option<&str>) -> Self {
+impl<'a> TokenStream<'a> {
+    pub fn new(codebase: &'a mut Codebase, source: std::rc::Rc<str>, file_id: usize) -> Self {
         Self {
-            source: CharacterBuffer::new(source),
-            token_start: None,
-            errors: Vec::new(),
-            sourcepath: sourcepath.map(str::to_owned),
+            source: TokenReader::new(source),
+            codebase,
+            file_id,
         }
     }
 
-    pub fn next_token(&mut self) -> Option<Token> {
+    pub fn cursor(&self) -> usize {
+        self.source.cursor
+    }
+
+    pub fn codebase(&mut self) -> &mut Codebase {
+        self.codebase
+    }
+}
+
+impl TokenStream<'_> {
+    pub fn next_token(&mut self) -> Option<SpannedToken> {
         // * Skip spaces
         while self.source.next_char_if(chars::is_whitespace).is_some() {}
 
         loop {
             // * Parse a token
-            self.token_start = Some(self.source.cursor().clone());
-            let char = self.source.next_char()?;
+            let token_start = self.source.cursor;
+            if let Some(char) = self.source.next_char() {
+                // * Tokens
+                // TODO: Raw strings
+                let token = if chars::is_ident_start(char) {
+                    // Ident
+                    let ident = self.source.next_token(chars::is_ident_continue, char);
+                    match ident.as_str() {
+                        "true" => Token::Literal(Literal::Bool(true)),
+                        "false" => Token::Literal(Literal::Bool(false)),
 
-            // * Tokens
-            // TODO: Raw strings
-            if chars::is_ident_start(char) {
-                let ident = self.source.next_token(chars::is_ident_continue, char);
-                return Some(match ident.as_str() {
-                    "true" => Token::Literal(Literal::Bool(true)),
-                    "false" => Token::Literal(Literal::Bool(false)),
+                        "as" => Token::Ident(ident, Some(Keyword::As)),
 
-                    "as" => Token::Ident(ident, Some(Keyword::As)),
-                    "fn" => Token::Ident(ident, Some(Keyword::Fn)),
+                        "fn" => Token::Ident(ident, Some(Keyword::Fn)),
+                        "mod" => Token::Ident(ident, Some(Keyword::Mod)),
 
-                    "bool" => Token::Ident(ident, Some(Keyword::Bool)),
-                    _ => Token::Ident(ident, None),
-                });
-            } else if char.is_ascii_digit() {
-                return Some(Token::Literal(Literal::Int(
-                    match self.source.peek_char() {
+                        "bool" => Token::Ident(ident, Some(Keyword::Bool)),
+                        _ => Token::Ident(ident, None),
+                    }
+                } else if char.is_ascii_digit() {
+                    // Numbers
+                    Token::Literal(Literal::Int(match self.source.peek_char() {
                         Some('x') if char == '0' => todo!("HEX literals"),
                         Some('b') if char == '0' => todo!("BIN literals"),
-                        Some('0'..='9') => self
-                            .source
-                            .next_token(|char| char.is_ascii_digit(), char)
-                            .parse()
-                            .expect("Internal error: Failed to parse a number!"),
-                        _ => char
-                            .to_digit(10)
-                            .expect("Internal error: Failed to parse a number!")
-                            as u128,
-                    },
-                )));
-                // TODO: Number suffixes
-            } else if char == '\'' {
-                return Some(self.parse_char_or_lifetime());
-            } else if char == '\"' {
-                return Some(Token::Literal(self.parse_string()));
-            } else {
-                {
+                        Some('o') if char == '0' => todo!("OCT literals"),
+                        Some('0'..='9') => crate::bug_result!(
+                            self.codebase,
+                            self.source
+                                .next_token(|char| char.is_ascii_digit(), char)
+                                .parse()
+                                .ok(),
+                            "failed to parse a number",
+                            vec![self.cursor_label(LabelStyle::Primary)]
+                        ),
+                        _ => crate::bug_result!(
+                            self.codebase,
+                            char.to_digit(10),
+                            "failed to parse a number",
+                            vec![self.cursor_label(LabelStyle::Primary)]
+                        ) as u128,
+                    }))
+                    // TODO: Number suffixes
+                } else if char == '\'' {
+                    self.parse_char_or_lifetime()
+                } else if char == '\"' {
+                    Token::Literal(self.parse_string())
+                } else {
                     #[rustfmt::skip]
                     let mut operators = [
                         "+", "-", "*", "/", "%",
@@ -74,8 +91,8 @@ impl<R: Read> TokenStream<R> {
                         "(", ")", "{", "}",
                         "&&", "||", "<<", ">>",
                     ];
-
                     operators.sort();
+
                     let mut buffer = char.to_string();
                     if operators.contains(&buffer.as_str()) {
                         while let Some(char) = self.source.peek_char() {
@@ -88,37 +105,47 @@ impl<R: Read> TokenStream<R> {
                             }
                         }
 
-                        if !operators.is_empty() {
-                            return Some(Token::Operator(match buffer.as_str() {
-                                "+" => Operator::Plus,
-                                "-" => Operator::Minus,
-                                "*" => Operator::Star,
-                                "/" => Operator::Slash,
-                                "%" => Operator::Modulo,
+                        Token::Operator(match buffer.as_str() {
+                            "+" => Operator::Plus,
+                            "-" => Operator::Minus,
+                            "*" => Operator::Star,
+                            "/" => Operator::Slash,
+                            "%" => Operator::Modulo,
 
-                                "&" => Operator::Ampersand,
-                                "|" => Operator::Bar,
-                                "^" => Operator::Carrot,
+                            "&" => Operator::Ampersand,
+                            "|" => Operator::Bar,
+                            "^" => Operator::Carrot,
 
-                                ";" => Operator::Semicolon,
+                            ";" => Operator::Semicolon,
 
-                                "(" => Operator::LParen,
-                                ")" => Operator::RParen,
-                                "{" => Operator::LBrace,
-                                "}" => Operator::RBrace,
+                            "(" => Operator::LParen,
+                            ")" => Operator::RParen,
+                            "{" => Operator::LBrace,
+                            "}" => Operator::RBrace,
 
-                                "&&" => Operator::LogicalAnd,
-                                "||" => Operator::LogicalOr,
-                                "<<" => Operator::ShiftLeft,
-                                ">>" => Operator::ShiftRight,
-                                operator => {
-                                    panic!("Internal error: operator '{operator}' is not supported")
-                                }
-                            }));
-                        }
+                            "&&" => Operator::LogicalAnd,
+                            "||" => Operator::LogicalOr,
+                            "<<" => Operator::ShiftLeft,
+                            ">>" => Operator::ShiftRight,
+                            operator => {
+                                panic!("Internal error: operator '{operator}' is not supported")
+                            }
+                        })
+                    } else {
+                        self.codebase.emit(
+                            Diagnostic::error()
+                                .with_message(format!(
+                                    "failed to parse token that starts with {char:?}"
+                                ))
+                                .with_labels(vec![self.cursor_label(LabelStyle::Primary)]),
+                        );
+
+                        continue;
                     }
-                }
-                self.error(format!("failed to parse token that starts with {char:?}"));
+                };
+                return self.span(token_start, token);
+            } else {
+                return None;
             }
         }
     }
@@ -133,11 +160,18 @@ impl<R: Read> TokenStream<R> {
                 // TODO: Char suffixes
                 Token::Literal(Literal::Char(char))
             } else {
-                self.error("non-terminated character literal, lifetimes are not supported yet");
+                self.codebase.emit(
+                    Diagnostic::error()
+                        .with_message(
+                            "non-terminated character literal, lifetimes are not supported yet",
+                        )
+                        .with_labels(vec![self.cursor_label(LabelStyle::Primary)]),
+                );
+
                 Token::Literal(Literal::Char(char))
             }
         } else {
-            self.error("empty character literal or lifetime");
+            // self.error("empty character literal or lifetime");
             Token::Literal(Literal::Char('\0'))
         }
     }
@@ -155,29 +189,27 @@ impl<R: Read> TokenStream<R> {
                 // TODO: escape codes, ref: https://github.com/MaxXSoft/laps/blob/3e193c16c2baf9baa65ea9b7c5d81f8d891bd858/src/lexer.rs#L229
                 buffer.push(char);
             } else {
-                self.error("unterminated string literal");
+                self.codebase.emit(
+                    Diagnostic::error()
+                        .with_message("unterminated string literal")
+                        .with_labels(vec![self.cursor_label(LabelStyle::Primary)]),
+                );
+                break;
             }
         }
         // TODO: String suffixes
         Literal::String(buffer)
     }
-}
 
-// * ------------------------------------ Errors ------------------------------------ * //
-impl<R: Read> TokenStream<R> {
-    pub fn error(&mut self, message: impl Into<String>) {
-        self.errors.push(CompilationError {
-            message: message.into(),
-            sourcepath: self.sourcepath.clone(),
-            at: self.token_start.clone(),
-        });
+    fn span(&self, token_start: usize, token: Token) -> Option<SpannedToken> {
+        Some(SpannedToken::new(token, token_start..self.source.cursor))
     }
 
-    pub fn errors(&self) -> &[CompilationError] {
-        self.errors.as_ref()
-    }
-
-    pub fn take_errors(self) -> Vec<CompilationError> {
-        self.errors
+    fn cursor_label(&self, style: LabelStyle) -> Label<usize> {
+        Label::new(
+            style,
+            self.file_id,
+            self.source.cursor..self.source.cursor + 1,
+        )
     }
 }

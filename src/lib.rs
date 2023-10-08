@@ -1,48 +1,47 @@
 pub mod lexer;
 pub mod parser;
+pub use orecc_front::Codebase;
 
-pub fn parse<T: std::io::Read>(
-    source: T,
-    sourcepath: Option<&str>,
-) -> Result<orecc_back::ir::Module, Vec<CompilationError>> {
-    use lexer::{TokenBuffer, TokenStream};
-    let mut tokens = TokenBuffer::new(TokenStream::new(source, sourcepath));
-    let mut ir = orecc_back::ir::Module::default();
-    while let Some(declaration) = parser::item::parse(&mut tokens) {
-        declaration.build(&mut ir);
+pub fn parse(codebase: &mut Codebase) -> Option<orecc_back::ir::Module> {
+    let mut file_id = 0;
+    while file_id < codebase.files().len() {
+        let file = &codebase.files()[file_id];
+        let name = file.name().clone();
+        let mut tokens = lexer::TokenBuffer::new(codebase, file.source().clone(), file_id);
+        let mut crate_ = parser::Crate::new();
+        parser::item::module::expect_entire(&mut tokens, &mut crate_, &parser::Path::new(&[name]));
+        dbg!(crate_);
+        // let mut ir = orecc_back::ir::Module::default();
+        // loop {
+        //     if let Some(declaration) = parser::item::parse(&mut tokens, path) {
+        //         dbg!(declaration);
+        //         // declaration.build(&mut ir);
+        //         // } else if let Some(got) = tokens.peek_token() {
+        //         //     let message = format!("expected item, got {}!", got.token);
+        //         //     tokens.error(message);
+        //     } else {
+        //         break;
+        //     }
+        // }
+        file_id += 1;
     }
-    let errors = tokens.take_errors();
-    if errors.is_empty() {
-        Ok(ir)
-    } else {
-        Err(errors)
-    }
+    None
 }
 
-// * ------------------------------------ Errors ------------------------------------ * //
-use lexer::Cursor;
-
-#[derive(Debug)]
-pub struct CompilationError {
-    pub message: String,
-    pub sourcepath: Option<String>,
-    pub at: Option<Cursor>,
-}
-
-impl std::error::Error for CompilationError {}
-
-impl std::fmt::Display for CompilationError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match (&self.at, &self.sourcepath) {
-            (None, Some(sourcepath)) => write!(f, "Error at {}: {}", sourcepath, self.message)?,
-            (Some(at), None) => write!(f, "Error at {}:{}: {}", at.line, at.column, self.message)?,
-            (Some(at), Some(sourcepath)) => write!(
-                f,
-                "Error at {}:{}:{}: {}",
-                sourcepath, at.line, at.column, self.message
-            )?,
-            (None, None) => write!(f, "Error: {}", self.message)?,
+#[macro_export]
+macro_rules! bug_result {
+    ($codebase: expr, $expr: expr, $message: expr$(, $labels: expr)?) => {
+        match $expr
+        {
+            Some(value) => value,
+            None => {
+                $codebase.emit(
+                    Diagnostic::bug()
+                        .with_message($message)
+                        $(.with_labels($labels))?,
+                );
+                Default::default()
+            }
         }
-        Ok(())
-    }
+    };
 }

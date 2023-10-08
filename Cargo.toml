@@ -11,7 +11,8 @@ xid = ["orecc-front/xid"]
 # orecc-back = { git = "https://github.com/InfiniteCoder01/orecc-back.git" }
 orecc-front = { path = "../../Libraries/orecc/orecc-front" }
 orecc-back = { path = "../../Libraries/orecc/orecc-back" }
+target-lexicon = { version = ">=0.12.0" }
 
 clap = { version = "4.4.0", features = ["derive"] }
 rustyline = "12.0.0"
-object = { version = "0.32.1", features = ["write", "write_core", "write_std"] }
+codespan-reporting = "0.11.1"

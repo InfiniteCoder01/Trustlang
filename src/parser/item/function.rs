@@ -1,36 +1,38 @@
 use crate::lexer::*;
-use std::io::Read;
+use crate::parser::{Crate, Path};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Function {
-    pub name: String,
-    pub body: crate::parser::expression::Block,
+    pub path: Path,
+    pub namespan: Span,
+    // pub body: crate::parser::expression::Block,
 }
 
-pub fn expect_function<R: Read>(tokens: &mut TokenBuffer<R>) -> Option<Function> {
-    if let Some(name) = tokens.next_indentifier() {
+pub fn expect(tokens: &mut TokenBuffer, crate_: &mut Crate, path: &Path) {
+    if let Some((name, namespan)) = tokens.next_indentifier() {
+        let path = path.item(name);
         if !tokens.match_operator(Operator::LParen) {
-            let got = tokens.got_token();
-            tokens.error(format!("expected '(', got: {}", got));
-            return None;
+            tokens.emit_expected("'('");
+            return;
         }
+
+        // TODO: Args
         if !tokens.match_operator(Operator::RParen) {
-            let got = tokens.got_token();
-            tokens.error(format!(
-                "argument list is not yet supported, for now: expected ')', got: {}",
-                got
-            ));
+            let diagnostic = tokens
+                .expected("')'")
+                .with_notes(vec![String::from("arguments are not supported yet")]);
+            tokens.codebase().emit(diagnostic);
+            return;
         }
-        if let Some(body) = crate::parser::expression::block::parse(tokens) {
-            Some(Function { name, body })
-        } else {
-            let got = tokens.got_token();
-            tokens.error(format!("expected function body, got {}", got));
-            None
-        }
+
+        crate_.functions.push(Function { path, namespan });
+        // if let Some(body) = crate::parser::expression::block::parse(tokens) {
+        //     Some(Function { name, span, body })
+        // } else {
+        //     tokens.emit_expected("function body");
+        //     None
+        // }
     } else {
-        let got = tokens.got_token();
-        tokens.error(format!("expected function name, got {}", got));
-        None
+        tokens.emit_expected("function name");
     }
 }
