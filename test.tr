@@ -1,5 +1,11 @@
-fn main()
+fn main() {
+    fn inner() {
+        42
+    }
+
+    5
+}
 
 mod tests {
-    fn test()
+    fn test() {}
 }

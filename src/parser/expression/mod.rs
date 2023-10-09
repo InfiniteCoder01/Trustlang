@@ -1,51 +1,49 @@
+use super::{item::function::Function, Crate, Path};
 use crate::lexer::*;
-use orecc_back::ir::*;
 
 pub mod block;
-pub mod operator;
+pub mod control_flow;
+pub mod value;
+// pub mod operator;
 
-pub use block::Block;
+pub use value::{Target, Value, Variable};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Expression {
-    Tuple(Vec<Expression>),
-    Block(Box<block::Block>),
-
-    Literal(Literal),
-    Binary(Box<Expression>, BinaryOperation, Box<Expression>),
-}
-
-impl Expression {
-    pub fn is_block(&self) -> bool {
-        matches!(self, Expression::Block(_))
-    }
+    // Binary(Target, BinaryOperation, Box<Value>, Box<Value>),
+    Return(Value),
 }
 
 // * ------------------------------------- Parse ------------------------------------ * //
-pub fn parse(tokens: &mut TokenBuffer) -> Option<Expression> {
-    operator::binary(tokens, 0)
+pub fn parse(
+    tokens: &mut TokenBuffer,
+    crate_: &mut Crate,
+    function: &mut Function,
+    path: &Path,
+) -> Option<Value> {
+    control_flow::parse(tokens, crate_, function, path)
 }
 
-pub fn expect(tokens: &mut TokenBuffer) -> Option<Expression> {
-    if let Some(expression) = parse(tokens) {
-        Some(expression)
-    } else if let Some(token) = tokens.peek_token() {
-        let message = format!("expected expression, got {token}");
-        tokens.error(message);
-        None
-    } else {
-        None
+pub fn expect(
+    tokens: &mut TokenBuffer,
+    crate_: &mut Crate,
+    function: &mut Function,
+    path: &Path,
+) -> Option<Value> {
+    match parse(tokens, crate_, function, path) {
+        Some(value) => Some(value),
+        _ => {
+            tokens.emit_expected("expression");
+            None
+        }
     }
 }
 
-pub fn literal(tokens: &mut TokenBuffer) -> Option<Expression> {
-    if let Some(block) = block::parse(tokens) {
-        return Some(Expression::Block(Box::new(block)));
-    }
-    let token = tokens.next_token()?;
-    match token {
-        Token::Literal(literal) => Some(Expression::Literal(literal)),
-        _ => None,
+impl std::fmt::Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self{
+            Expression::Return(value) => write!(f, "return {value}"),
+        }
     }
 }
 

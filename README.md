@@ -19,3 +19,7 @@ Compilation process is intended to be fast and simple:
     - Borrow checking
     - \[Backend] IR
 - Backend work (compilation & optimization)
+
+TODO Warnings:
+[rustc](https://doc.rust-lang.org/rustc/lints/listing/warn-by-default.html)
+[clippy](https://rust-lang.github.io/rust-clippy/master/index.html)

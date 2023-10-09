@@ -1,4 +1,4 @@
-// pub mod expression;
+pub mod expression;
 pub mod item;
 // pub mod types;
 
@@ -29,5 +29,28 @@ pub struct Crate {
 impl Crate {
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+// * ------------------------------------ Display ----------------------------------- * //
+impl std::fmt::Display for Path {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (index, segment) in self.path.iter().enumerate() {
+            if index == 0 {
+                write!(f, "{segment}")?;
+            } else {
+                write!(f, "::{segment}")?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for Crate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for function in &self.functions {
+            writeln!(f, "{}", function)?;
+        }
+        Ok(())
     }
 }

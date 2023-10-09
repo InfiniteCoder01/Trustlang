@@ -1,11 +1,12 @@
 use crate::lexer::*;
+use crate::parser::expression::Expression;
 use crate::parser::{Crate, Path};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Function {
     pub path: Path,
     pub namespan: Span,
-    // pub body: crate::parser::expression::Block,
+    pub body: Vec<Expression>,
 }
 
 pub fn expect(tokens: &mut TokenBuffer, crate_: &mut Crate, path: &Path) {
@@ -25,14 +26,29 @@ pub fn expect(tokens: &mut TokenBuffer, crate_: &mut Crate, path: &Path) {
             return;
         }
 
-        crate_.functions.push(Function { path, namespan });
-        // if let Some(body) = crate::parser::expression::block::parse(tokens) {
-        //     Some(Function { name, span, body })
-        // } else {
-        //     tokens.emit_expected("function body");
-        //     None
-        // }
+        let mut function = Function {
+            path: path.clone(),
+            namespan,
+            body: Vec::new(),
+        };
+        match crate::parser::expression::block::parse(tokens, crate_, &mut function, &path) {
+            Some(tail_return) => function.body.push(Expression::Return(tail_return)),
+            None => {
+                tokens.emit_expected("function body");
+            }
+        }
+        crate_.functions.push(function);
     } else {
         tokens.emit_expected("function name");
+    }
+}
+
+impl std::fmt::Display for Function {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}:", self.path)?;
+        for expression in &self.body {
+            writeln!(f, "    {expression}")?;
+        }
+        Ok(())
     }
 }

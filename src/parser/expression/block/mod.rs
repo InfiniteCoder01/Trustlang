@@ -1,56 +1,50 @@
-use super::Expression;
+use super::Value;
 use crate::lexer::*;
+use crate::parser::{item::function::Function, Crate, Path};
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Block {
-    span: Span,
-    statements: Vec<Statement>,
-    tail_return: Expression,
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum Statement {
-    Item(crate::parser::item::Item),
-    Expression(Expression),
-}
-
-pub fn parse(tokens: &mut TokenBuffer) -> Option<Block> {
-    let span = tokens.cursor();
+pub fn parse(
+    tokens: &mut TokenBuffer,
+    crate_: &mut Crate,
+    function: &mut Function,
+    path: &Path,
+) -> Option<Value> {
+    // let span = tokens.cursor();
     if tokens.match_operator(Operator::LBrace) {
-        let mut statements = Vec::new();
         while !tokens.match_operator(Operator::RBrace) {
-            if let Some(item) = crate::parser::item::parse(tokens) {
-                // Item Statement
-                statements.push(Statement::Item(item));
-            } else if let Some(expression) = super::parse(tokens) {
+            // * Items
+            if crate::parser::item::parse(tokens, crate_, path) {
+                continue;
+            }
+
+            // * Expressions
+            if let Some(value) = blocked(tokens, crate_, function, path) {
                 if tokens.match_operator(Operator::RBrace) {
-                    // Tail Return
-                    return Some(Block {
-                        span: span..tokens.cursor(),
-                        statements,
-                        tail_return: expression,
-                    });
-                } else if tokens.match_operator(Operator::Semicolon) || expression.is_block() {
-                    // Expression Statement
-                    statements.push(Statement::Expression(expression));
-                } else {
-                    // Unterminated expression statement or tail return
-                    let got = tokens.got_token();
-                    tokens.error(format!("expected ';' or '}}', got {got}"));
-                    return None;
+                    // Tail expression
+                    return Some(value);
+                }
+            } else if let Some(value) = super::parse(tokens, crate_, function, path) {
+                if tokens.match_operator(Operator::RBrace) {
+                    // Tail expression
+                    return Some(value);
+                } else if !tokens.match_operator(Operator::Semicolon) {
+                    tokens.emit_expected("';' or '}}'");
                 }
             } else {
-                // Expected expression or statement
-                let got = tokens.got_token();
-                tokens.error(format!("expected an expression or statement, got {got}"));
+                tokens.emit_expected("an expression or a statement");
             }
         }
-        Some(Block {
-            span: span..tokens.cursor(),
-            statements,
-            tail_return: Expression::Tuple(Vec::new()),
-        })
+        Some(Value::Unit)
     } else {
         None
     }
+}
+
+/// if, for, while, block, closure, asyncs
+pub fn blocked(
+    tokens: &mut TokenBuffer,
+    crate_: &mut Crate,
+    function: &mut Function,
+    path: &Path,
+) -> Option<Value> {
+    parse(tokens, crate_, function, path)
 }
