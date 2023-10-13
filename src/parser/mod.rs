@@ -1,3 +1,7 @@
+use orecc_front::Span;
+
+use self::expression::Expression;
+
 pub mod expression;
 pub mod item;
 // pub mod types;
@@ -30,6 +34,13 @@ impl Crate {
     pub fn new() -> Self {
         Self::default()
     }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct SpannedExpression {
+    pub expression: Expression,
+    pub expression_span: Span,
+    pub operator_span: Span,
 }
 
 // * ------------------------------------ Display ----------------------------------- * //

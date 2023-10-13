@@ -18,7 +18,8 @@ pub fn compile(codebase: &mut Codebase) {
 
 fn main() {
     let mut rl = rustyline::DefaultEditor::new().unwrap();
-    let cli = Cli::parse();
+    let mut cli = Cli::parse();
+    cli.file = Some(String::from("test.tr"));
     let mut codebase = Codebase::new();
     if let Some(file) = cli.file {
         match std::fs::read_to_string(&file) {

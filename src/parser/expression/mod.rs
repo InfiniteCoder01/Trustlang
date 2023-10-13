@@ -11,7 +11,7 @@ pub use value::{Target, Value, Variable};
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Expression {
     // Binary(Target, BinaryOperation, Box<Value>, Box<Value>),
-    Return(Value),
+    Return(Value, bool),
 }
 
 // * ------------------------------------- Parse ------------------------------------ * //
@@ -39,10 +39,11 @@ pub fn expect(
     }
 }
 
+// * ------------------------------------ Display ----------------------------------- * //
 impl std::fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self{
-            Expression::Return(value) => write!(f, "return {value}"),
+            Expression::Return(value, _) => write!(f, "return {value}"),
         }
     }
 }

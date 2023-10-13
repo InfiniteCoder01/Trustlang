@@ -47,6 +47,8 @@ impl TokenStream<'_> {
                         "true" => Token::Literal(Literal::Bool(true)),
                         "false" => Token::Literal(Literal::Bool(false)),
 
+                        "return" => Token::Ident(ident, Some(Keyword::Return)),
+
                         "as" => Token::Ident(ident, Some(Keyword::As)),
 
                         "fn" => Token::Ident(ident, Some(Keyword::Fn)),

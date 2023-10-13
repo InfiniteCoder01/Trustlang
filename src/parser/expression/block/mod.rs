@@ -8,7 +8,7 @@ pub fn parse(
     function: &mut Function,
     path: &Path,
 ) -> Option<Value> {
-    // let span = tokens.cursor();
+    let span = tokens.cursor();
     if tokens.match_operator(Operator::LBrace) {
         while !tokens.match_operator(Operator::RBrace) {
             // * Items
@@ -22,6 +22,7 @@ pub fn parse(
                     // Tail expression
                     return Some(value);
                 }
+                tokens.match_operator(Operator::RBrace);
             } else if let Some(value) = super::parse(tokens, crate_, function, path) {
                 if tokens.match_operator(Operator::RBrace) {
                     // Tail expression
@@ -31,9 +32,10 @@ pub fn parse(
                 }
             } else {
                 tokens.emit_expected("an expression or a statement");
+                break;
             }
         }
-        Some(Value::Unit)
+        Some(Value::Unit(span..tokens.cursor()))
     } else {
         None
     }

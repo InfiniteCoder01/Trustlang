@@ -69,7 +69,7 @@ impl TokenBuffer<'_> {
         }
     }
 
-    pub fn match_keyword(&mut self, expectation: super::Keyword) -> bool {
+    pub fn match_keyword(&mut self, expectation: super::Keyword) -> Option<Span> {
         self.fill_token();
         self.next_token_if(|token| {
             if let Token::Ident(_, Some(keyword)) = token {
@@ -78,7 +78,7 @@ impl TokenBuffer<'_> {
                 false
             }
         })
-        .is_some()
+        .map(|token| token.span)
     }
 
     pub fn match_operator(&mut self, expectation: super::Operator) -> bool {
@@ -121,9 +121,11 @@ impl TokenBuffer<'_> {
 
     pub fn expected(&mut self, expectation: &str) -> Diagnostic<usize> {
         let got = self.got_token();
-        Diagnostic::error()
+        let diagnostic = Diagnostic::error()
             .with_message(format!("expected {expectation}, got: {got}"))
-            .with_labels(vec![self.label(LabelStyle::Primary)])
+            .with_labels(vec![self.label(LabelStyle::Primary)]);
+        self.peek = None;
+        diagnostic
     }
 
     pub fn emit_expected(&mut self, expectation: &str) {

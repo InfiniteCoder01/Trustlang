@@ -1,8 +1,8 @@
 mod token_buffer;
 mod token_stream;
 
+use orecc_front::Span;
 pub use token_buffer::TokenBuffer;
-pub type Span = std::ops::Range<usize>;
 pub type CrossfileSpan = (usize, Span);
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -16,6 +16,8 @@ pub enum Token {
 pub enum Keyword {
     Fn,
     Mod,
+
+    Return,
 
     As,
 
