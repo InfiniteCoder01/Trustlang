@@ -11,8 +11,9 @@ struct Cli {
 
 pub fn compile(codebase: &mut Codebase) {
     match trustlang::parse(codebase) {
-        Some(result) => println!("Compiled successfully!\nResult:\n{result}"),
-        None => eprintln!("Compilation Failed!"),
+        // Some(result) => println!("Compiled successfully!\nResult:\n{result}"),
+        // None => eprintln!("Compilation Failed!"),
+        _ => (),
     }
 }
 
@@ -24,7 +25,7 @@ fn main() {
     if let Some(file) = cli.file {
         match std::fs::read_to_string(&file) {
             Ok(source) => {
-                codebase.add(file, source);
+                codebase.add(file, std::rc::Rc::from(source));
                 compile(&mut codebase);
             }
             Err(err) => eprintln!("Failed to open file {file:?}: {err}"),
@@ -35,7 +36,7 @@ fn main() {
             match readline {
                 Ok(line) => {
                     rl.add_history_entry(line.as_str()).unwrap();
-                    codebase.add(String::from("<buffer>"), line);
+                    codebase.add(String::from("<buffer>"), std::rc::Rc::from(line));
                     compile(&mut codebase);
                 }
                 Err(rustyline::error::ReadlineError::Interrupted) => {
